@@ -1,0 +1,152 @@
+/* --- AppNavBar.module.css --- */
+
+/* Base Navbar (from previous version, ensuring it's coherent) */
+.navbar {
+    background-color: #2c3e50 !important; /* Deep Navy Blue */
+    border-bottom: 3px solid #f39c12; /* Vibrant orange accent */
+    transition: background-color 0.3s ease-in-out;
+}
+
+/* --- BRAND/LOGO Text Styling --- */
+.navbar-brand {
+    font-family: 'Kanit', sans-serif; /* **NEW FONT: Kanit** */
+    font-weight: 800; /* Extra bold for strong presence */
+    font-size: 2.2rem; /* **Even larger font size for maximum impact** */
+    color: #ecf0f1 !important; /* Light text color for contrast */
+    letter-spacing: 1.5px; /* **Increased letter spacing for a more spread-out, header-like feel** */
+    text-transform: uppercase; /* Keep uppercase for a bold, distinctive look */
+    text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.4); /* More pronounced shadow for depth */
+    display: flex;
+    align-items: center;
+    text-decoration: none; /* Remove default underline */
+    transition: all 0.3s ease; /* Smooth transition for hover effects */
+}
+
+.navbar-brand:hover {
+    color: #f1c40f !important; /* Brighter yellow on hover */
+    transform: scale(1.02); /* Slightly scale up on hover for a subtle pop */
+    text-shadow: 2px 2px 8px rgba(243, 156, 18, 0.7); /* Glow effect on hover */
+}
+
+.brandImage {
+    height: 45px; /* **Slightly larger logo to match increased text size** */
+    width: auto;
+    margin-right: 15px; /* **Increased margin for better separation from text** */
+    vertical-align: middle;
+    filter: brightness(1.3) drop-shadow(0 0 5px rgba(243, 156, 18, 0.5)); /* Slightly brighter and subtle glow for the logo */
+    transition: transform 0.3s ease;
+}
+
+.brandImage:hover {
+    transform: rotate(5deg); /* Subtle rotation on hover for playfulness */
+}
+
+/* --- NavLink Text Styling (MAJOR IMPROVEMENTS HERE to make them HEADER-LIKE) --- */
+.navLink {
+    font-family: 'Kanit', sans-serif; /* **NEW FONT: Kanit, matching brand** */
+    color: #ecf0f1 !important; /* Light text color for links */
+    font-weight: 600; /* **Bolder, like a sub-header** */
+    font-size: 1.15rem; /* **Larger text for more impact** */
+    letter-spacing: 0.8px; /* **More letter spacing for distinct header feel** */
+    margin: 0 18px; /* **Increased spacing between links for emphasis** */
+    padding: 8px 0; /* **Increased vertical padding to give more visual height to the link** */
+    position: relative; /* For the underline effect */
+    text-decoration: none; /* Remove default underline */
+    text-transform: uppercase; /* **Make links uppercase too for consistency with brand and header feel** */
+    transition: color 0.3s ease, transform 0.2s ease, text-shadow 0.3s ease;
+    display: flex;
+    align-items: center;
+}
+
+.navLink:hover {
+    color: #f1c40f !important; /* Bright yellow on hover */
+    transform: translateY(-4px); /* **More pronounced lift on hover** */
+    text-shadow: 0 0 10px rgba(243, 156, 18, 0.8); /* Stronger glow effect on hover */
+}
+
+/* Active NavLink styling */
+.navLink.active {
+    color: #f1c40f !important; /* Active link color */
+    font-weight: 700; /* Even bolder when active */
+    text-shadow: 0 0 12px rgba(243, 156, 18, 1); /* Intense glow for active link */
+}
+
+.navLink.active::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: -10px; /* **Adjusted to be even further below the link text due to larger padding** */
+    width: 100%;
+    height: 4px; /* **Thicker underline for impact** */
+    background-color: #f1c40f; /* Accent color for active underline */
+    border-radius: 2px;
+    animation: expandUnderline 0.3s forwards;
+}
+
+@keyframes expandUnderline {
+    from { transform: scaleX(0); }
+    to { transform: scaleX(1); }
+}
+
+/* --- Button Styling for Login/Register (minor tweaks for consistency) --- */
+.navButton {
+    font-family: 'Kanit', sans-serif; /* **NEW FONT: Kanit, matching others** */
+    background-color: #f39c12; /* Accent button background */
+    color: #fda800 !important; /* Dark text on button for contrast */
+    border: none;
+    border-radius: 25px; /* Pill shape */
+    padding: 12px 25px; /* **Even more padding for a larger, more prominent button** */
+    margin-left: 20px; /* **More space from other links/buttons** */
+    font-weight: 700; /* **Bolder text for buttons** */
+    font-size: 1.05rem; /* **Consistent font size with links** */
+    letter-spacing: 0.5px; /* **More spaced letters for buttons** */
+    text-transform: uppercase; /* **Uppercase for buttons too** */
+    box-shadow: 0 5px 12px rgba(0, 0, 0, 0.4); /* More pronounced shadow */
+    transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+    display: flex;
+    align-items: center;
+}
+
+.navButton:hover {
+    background-color: #e67e22; /* Slightly darker orange on hover */
+    transform: translateY(-5px); /* **More noticeable lift on hover** */
+    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.5); /* Stronger shadow on hover */
+}
+
+.navButton:active {
+    transform: translateY(-2px); /* Slight sink effect when clicked */
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3);
+}
+
+
+/* Dropdown styling (minor tweaks for consistency) */
+.dropdown-menu {
+    font-family: 'Kanit', sans-serif; /* **NEW FONT: Kanit** */
+    background-color: #34495e; /* Darker background for dropdown */
+    border: none;
+    border-radius: 0 0 5px 5px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.dropdown-item {
+    color: #ecf0f1 !important;
+    transition: background-color 0.2s ease;
+    padding: 12px 25px; /* **More padding for dropdown items for header-like feel** */
+    font-size: 1rem; /* Consistent font size */
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    text-transform: uppercase; /* **Uppercase for dropdown items** */
+}
+
+.dropdown-item:hover, .dropdown-item:active {
+    background-color: #f39c12 !important;
+    color: #2c3e50 !important;
+}
+
+/* Navbar Toggle icon */
+.navbar-toggler {
+    border-color: rgba(255, 255, 255, 0.4) !important;
+}
+.navbar-toggler-icon {
+    filter: invert(1); /* Makes the toggle icon white */
+}
