@@ -9,7 +9,7 @@ const cartRoutes = require("./routes/cartRoutes");
 const PORT = 4000;
 
 // Add the database connection
-mongoose.connect("mongodb://localhost:27017/");
+mongoose.connect("mongodb://localhost:27017/Finals");
 mongoose.connection.once('open', () => console.log('Now connected to MongoDB Atlas.'))
 
 // Server setup

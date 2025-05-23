@@ -14,6 +14,8 @@ import Error from './pages/Error';
 import './App.css';
 import 'bootswatch/dist/cosmo/bootstrap.min.css';
 import { UserProvider } from './UserContext';
+import AdminView from "./components/AdminView";
+import ArchivedProducts from "./components/AdminDashboard files/ArchivedProducts";        
 
 export default function App() {
 
@@ -52,6 +54,8 @@ export default function App() {
                 <Route exact path="/cart" component={MyCart}/>
                 <Route exact path="/orders" component={Orders}/>
                 <Route exact path="/logout" component={Logout}/>
+                <Route exact path="/admin-dashboard" component={AdminView}/>
+                <Route exact path="/admin/archive" component={ArchivedProducts}/>
                 <Route component={Error}/>
             </Switch>
         </Router>

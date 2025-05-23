@@ -1,516 +1,600 @@
-import React, { useEffect, useState, useContext } from 'react';
-import { Form, Table, Button, Modal, Accordion, Card } from 'react-bootstrap';
+import React, { useEffect, useState, useContext, useCallback } from 'react';
+import {
+    Container,
+    Row,
+    Col,
+    Form,
+    Table,
+    Button,
+    Modal,
+    Accordion,
+    Card,
+    InputGroup,
+    FormControl
+} from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import moment from 'moment';
 import UserContext from '../UserContext';
 import Swal from 'sweetalert2';
 
-export default function AdminView(){
+// Import a CSS module for custom admin styles (create this file)
+import styles from '../components/css/admindashboard/AdminView.module.css';
 
-	const { user } = useContext(UserContext);
+export default function AdminView() {
+    const { user } = useContext(UserContext);
 
-	const [products, setProducts] = useState([]);
-	const [id, setId] = useState("");
-	const [name, setName] = useState("");
-	const [description, setDescription] = useState("");
-	const [price, setPrice] = useState(0);
-	const [showAdd, setShowAdd] = useState(false);
-	const [showEdit, setShowEdit] = useState(false);
-	const [toggle, setToggle] = useState(false);
-	const [ordersList, setOrdersList] = useState([]);
+    const [products, setProducts] = useState([]);
+    const [id, setId] = useState("");
+    const [name, setName] = useState("");
+    const [description, setDescription] = useState("");
+    const [price, setPrice] = useState(0);
+    const [showAdd, setShowAdd] = useState(false);
+    const [showEdit, setShowEdit] = useState(false);
+    const [activeTab, setActiveTab] = useState('products'); // 'products' or 'orders'
+    const [ordersList, setOrdersList] = useState([]);
+    const [searchTerm, setSearchTerm] = useState(''); // For product search
 
-	const openAdd = () => setShowAdd(true);
-	const closeAdd = () => setShowAdd(false);
-
-	const openEdit = (productId) => {
-
-		setId(productId);
-
-		fetch(`${ process.env.REACT_APP_API_URL }/products/${ productId }`)
-		.then(res => res.json())
-		.then(data => {
-			setName(data.name);
-			setDescription(data.description);
-			setPrice(data.price);
-		});
-
-		setShowEdit(true);
-
-	};
-
-	const closeEdit = () => {
-
-		setName("");
-		setDescription("");
-		setPrice(0);
-		setShowEdit(false);
-
-	};
-
-	const addProduct = (e) => {
-
-		e.preventDefault();
-
-		fetch(`${process.env.REACT_APP_API_URL}/products`, {
-			method: 'POST',
-			headers: {
-				Authorization: `Bearer ${ localStorage.getItem('token') }`,
-				'Content-Type': 'application/json'
-			},
-			body: JSON.stringify({
-				name: name,
-				description: description,
-				price: price
-			})
-		})
-		.then(res => res.json())
-		.then(data => {
-
-			if (data === true) {
-
-				Swal.fire({
-		          position: "top-end",
-		          icon: "success",
-		          title: "Product successfully added.",
-		          showConfirmButton: false,
-		          timer: 1500,
-		        });
-				
-				setName("");
-				setDescription("");
-				setPrice(0);
-				closeAdd();
-
-			} else {
-
-				Swal.fire({
-		          position: "top-end",
-		          icon: "error",
-		          title: "Something went wrong.",
-		          showConfirmButton: false,
-		          timer: 1500,
-		        });
-			
-				closeAdd();
-
-			}
-
-		});
-
-	};
-
-	const editProduct = (e, productId) => {
-
-		e.preventDefault();
-
-		fetch(`${process.env.REACT_APP_API_URL}/products/${ productId }`, {
-			method: 'PATCH',
-			headers: {
-				Authorization: `Bearer ${ localStorage.getItem('token') }`,
-				'Content-Type': 'application/json'
-			},
-			body: JSON.stringify({
-				name: name,
-				description: description,
-				price: price
-			})
-
-		})
-		.then(res => res.json())
-		.then(data => {
-
-			if (data.message === 'Product updated successfully') {
-
-				Swal.fire({
-		          position: "top-end",
-		          icon: "success",
-		          title: "Product successfully updated.",
-		          showConfirmButton: false,
-		          timer: 1500,
-		        });
-				
-				setName("");
-				setDescription("");
-				setPrice(0);
-				closeEdit();
-
-			} else {
-
-				Swal.fire({
-		          position: "top-end",
-		          icon: "error",
-		          title: "Something went wrong.",
-		          showConfirmButton: false,
-		          timer: 1500,
-		        });
-				closeEdit();
-
-			}
-
-		});
-
-	};
-
-
-	useEffect(() => {
-		fetch(`${process.env.REACT_APP_API_URL}/orders/all-orders`, {
-			headers: {
-				Authorization: `Bearer ${localStorage.getItem('token')}`,
-			},
-		})
-		.then((res) => res.json())
-		.then((data) => {
-      // console.log(data);
-
-			let ordersArray = [];
-
-			if (data && data.orders && Array.isArray(data.orders) && data.orders.length > 0) {
-				ordersArray = data.orders;
-			} else if (data && data.order) {
-        // If there is a single order, create an array with that order
-				ordersArray = [data.order];
-			} else {
-				console.error('Invalid or empty JSON data in response:', data);
-			}
-
-			const allOrders = ordersArray.map((order, index) => {
-				return (
-					<Card key={order._id}>
-					<Accordion.Toggle 
-					as={Card.Header}
-					eventKey={index + 1}
-					className="bg-secondary text-white"
-					>
-					Orders for user <span className="text-warning">{order.userId}</span>
-					</Accordion.Toggle>
-					<Accordion.Collapse eventKey={index + 1}>
-					<Card.Body>
-					{order.productsOrdered.length > 0 ? (
-						order.productsOrdered.map((product) => (
-							<div key={product._id}>
-							<h6>Purchased on {moment(order.orderedOn).format("MM-DD-YYYY")}:</h6>
-							<ul>
-							<li>
-							{product.productName} - Quantity: {product.quantity}
-							</li>
-							</ul>
-							<h6>Total: <span className="text-warning">₱{order.totalPrice}</span></h6>
-							<hr/>
-							</div>
-							))
-						) : (
-						<span>No orders for this user yet.</span>
-						)}
-						</Card.Body>
-						</Accordion.Collapse>
-						</Card>
-						);
-			});
-
-			setOrdersList(allOrders);
-		})
-		.catch((error) => {
-			console.error('Error fetching orders:', error);
-		});
-	}, []);
-
-
-
-
-
-	const toggler = () => {
-
-		if(toggle === true){
-			setToggle(false);
-		}else{
-			setToggle(true);
-		}
-
-	};
-
-	useEffect(() => {
-
-		const activateProduct = (productId) => {
-
-			fetch(`${process.env.REACT_APP_API_URL}/products/${ productId }/activate`, {
-				method: 'PATCH',
-				headers: {
-					Authorization: `Bearer ${ localStorage.getItem('token') }`,
-				}
-			})
-			.then(res => res.json())
-			.then(data => {
-				if (data.message === 'Product activated successfully') {
-					
-					Swal.fire({
-			          position: "top-end",
-			          icon: "success",
-			          title: "Product successfully activated.",
-			          showConfirmButton: false,
-			          timer: 1500,
-			        });
-					
-				} else {
-					Swal.fire({
-			          position: "top-end",
-			          icon: "error",
-			          title: "Something went wrong.",
-			          showConfirmButton: false,
-			          timer: 1500,
-			        });
-				}
-
-			});
-
-		};
-
-		const archiveProduct = (productId) => {
-
-			fetch(`${process.env.REACT_APP_API_URL}/products/${ productId }/archive`, {
-				method: 'PATCH',
-				headers: {
-					Authorization: `Bearer ${ localStorage.getItem('token') }`,
-				}
-			})
-			.then(res => res.json())
-			.then(data => {
-
-				if (data.message === 'Product archived successfully') {
-					
-					Swal.fire({
-			          position: "top-end",
-			          icon: "success",
-			          title: "Product successfully archived",
-			          showConfirmButton: false,
-			          timer: 1500,
-			        });
-				} else {
-					Swal.fire({
-			          position: "top-end",
-			          icon: "error",
-			          title: "Something went wrong.",
-			          showConfirmButton: false,
-			          timer: 1500,
-			        });
-				}
-
-			});
-
-		};
-
-
-		
-		fetch(`${ process.env.REACT_APP_API_URL}/products/all`, {
-            headers: { Authorization: `Bearer ${ localStorage.getItem('token') }`}
+    // Helper function to fetch all products
+    const fetchAllProducts = useCallback(() => {
+        fetch(`${process.env.REACT_APP_API_URL}/products/all`, {
+            headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
         })
-		.then(res => res.json())
-		.then(data => {
+        .then(res => res.json())
+        .then(data => {
+            if (Array.isArray(data)) {
+                setProducts(data);
+            } else {
+                console.error("Expected an array of products, but got:", data);
+                setProducts([]); // Ensure products is an empty array on error
+            }
+        })
+        .catch(error => {
+            console.error("Error fetching all products:", error);
+            Swal.fire({
+                icon: "error",
+                title: "Oops...",
+                text: "Failed to load products. Please try again later.",
+            });
+        });
+    }, []); // Empty dependency array means this function is created once
 
-			const productsArr = data.map(productData => {
-				return (
+    // Helper function to fetch all orders
+    const fetchAllOrders = useCallback(() => {
+        fetch(`${process.env.REACT_APP_API_URL}/orders/all-orders`, {
+            headers: {
+                Authorization: `Bearer ${localStorage.getItem('token')}`,
+            },
+        })
+        .then((res) => res.json())
+        .then((data) => {
+            let fetchedOrders = [];
+            if (data && data.orders && Array.isArray(data.orders) && data.orders.length > 0) {
+                fetchedOrders = data.orders;
+            } else if (data && data.order) {
+                fetchedOrders = [data.order];
+            } else {
+                console.warn('No orders or invalid data received:', data);
+            }
+            setOrdersList(fetchedOrders);
+        })
+        .catch((error) => {
+            console.error('Error fetching orders:', error);
+            Swal.fire({
+                icon: "error",
+                title: "Oops...",
+                text: "Failed to load orders. Please try again later.",
+            });
+        });
+    }, []);
 
-					<tr key={productData._id}>
-						<td>
-						<Link to={`/products/${productData._id}`}>{
-							productData.name}
-						</Link>
-					</td>
-					<td>{productData.description}</td>
-					<td>{productData.price}</td>
-					<td>
-						{ productData.isActive ?
-								<span className="text-success">Available</span>
-							:
-								<span className="text-danger">Unavailable</span>
-						}
-					</td>
-					<td>
-						<Button 
-							variant="primary" 
-							size="sm" 
-							onClick={() => openEdit(productData._id)}
-						>
-							Update
-						</Button>
-						{ productData.isActive ?
-								<Button 
-									variant="danger"
-									size="sm"
-									onClick={() => archiveProduct(productData._id)}
-								>
-									Disable
-								</Button>
-							:
-								<Button
-									variant="success"
-									size="sm"
-									onClick={() => activateProduct(productData._id)}
-								>
-								 	Enable
-								</Button>
-						}
-					</td>
-					</tr>
-					)
+    useEffect(() => {
+        if (user.isAdmin) {
+            fetchAllProducts();
+            fetchAllOrders(); // Fetch orders on initial load as well
+        }
+    }, [user, fetchAllProducts, fetchAllOrders]); // Depend on user and memoized fetch functions
 
-			})
-			setProducts(productsArr);
-		})
+    // Add Product Modal functions
+    const openAdd = () => setShowAdd(true);
+    const closeAdd = () => {
+        setName("");
+        setDescription("");
+        setPrice(0);
+        setShowAdd(false);
+    };
 
-		
+    // Edit Product Modal functions
+    const openEdit = (productId) => {
+        setId(productId);
+        fetch(`${process.env.REACT_APP_API_URL}/products/${productId}`)
+            .then(res => res.json())
+            .then(data => {
+                setName(data.name);
+                setDescription(data.description);
+                setPrice(data.price);
+                setShowEdit(true);
+            })
+            .catch(error => {
+                console.error("Error fetching product for edit:", error);
+                Swal.fire({
+                    icon: "error",
+                    title: "Oops...",
+                    text: "Failed to load product details for editing.",
+                });
+            });
+    };
 
-	}, [products])
+    const closeEdit = () => {
+        setName("");
+        setDescription("");
+        setPrice(0);
+        setShowEdit(false);
+    };
+
+    // CRUD Operations
+    const addProduct = (e) => {
+        e.preventDefault();
+        fetch(`${process.env.REACT_APP_API_URL}/products`, {
+            method: 'POST',
+            headers: {
+                Authorization: `Bearer ${localStorage.getItem('token')}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                name: name,
+                description: description,
+                price: price
+            })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.message === 'Product added successfully') { // Check for a specific message
+                Swal.fire({
+                    icon: "success",
+                    title: "Product Added!",
+                    text: "Product successfully added.",
+                    showConfirmButton: false,
+                    timer: 1500,
+                });
+                closeAdd();
+                fetchAllProducts(); // Re-fetch products to update the list
+            } else {
+                Swal.fire({
+                    icon: "error",
+                    title: "Oh No!",
+                    text: data.message || "Something went wrong.", // Use data.message if available
+                    showConfirmButton: false,
+                    timer: 1500,
+                });
+                closeAdd();
+            }
+        })
+        .catch(error => {
+            console.error("Error adding product:", error);
+            Swal.fire({
+                icon: "error",
+                title: "Error",
+                text: "Failed to add product.",
+            });
+        });
+    };
+
+    const editProduct = (e, productId) => {
+        e.preventDefault();
+        fetch(`${process.env.REACT_APP_API_URL}/products/${productId}`, {
+            method: 'PATCH',
+            headers: {
+                Authorization: `Bearer ${localStorage.getItem('token')}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                name: name,
+                description: description,
+                price: price
+            })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.message === 'Product updated successfully') {
+                Swal.fire({
+                    icon: "success",
+                    title: "Product Updated!",
+                    text: "Product successfully updated.",
+                    showConfirmButton: false,
+                    timer: 1500,
+                });
+                closeEdit();
+                fetchAllProducts(); // Re-fetch products to update the list
+            } else {
+                Swal.fire({
+                    icon: "error",
+                    title: "Oh No!",
+                    text: data.message || "Something went wrong.",
+                    showConfirmButton: false,
+                    timer: 1500,
+                });
+                closeEdit();
+            }
+        })
+        .catch(error => {
+            console.error("Error updating product:", error);
+            Swal.fire({
+                icon: "error",
+                title: "Error",
+                text: "Failed to update product.",
+            });
+        });
+    };
+
+    const activateProduct = (productId) => {
+        fetch(`${process.env.REACT_APP_API_URL}/products/${productId}/activate`, {
+            method: 'PATCH',
+            headers: {
+                Authorization: `Bearer ${localStorage.getItem('token')}`,
+            }
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.message === 'Product activated successfully') {
+                Swal.fire({
+                    icon: "success",
+                    title: "Product Activated!",
+                    text: "Product successfully activated.",
+                    showConfirmButton: false,
+                    timer: 1500,
+                });
+                fetchAllProducts(); // Re-fetch products
+            } else {
+                Swal.fire({
+                    icon: "error",
+                    title: "Oh No!",
+                    text: data.message || "Something went wrong.",
+                    showConfirmButton: false,
+                    timer: 1500,
+                });
+            }
+        })
+        .catch(error => {
+            console.error("Error activating product:", error);
+            Swal.fire({
+                icon: "error",
+                title: "Error",
+                text: "Failed to activate product.",
+            });
+        });
+    };
+
+    const archiveProduct = (productId) => {
+        fetch(`${process.env.REACT_APP_API_URL}/products/${productId}/archive`, {
+            method: 'PATCH',
+            headers: {
+                Authorization: `Bearer ${localStorage.getItem('token')}`,
+            }
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.message === 'Product archived successfully') {
+                Swal.fire({
+                    icon: "success",
+                    title: "Product Archived!",
+                    text: "Product successfully archived.",
+                    showConfirmButton: false,
+                    timer: 1500,
+                });
+                fetchAllProducts(); // Re-fetch products
+            } else {
+                Swal.fire({
+                    icon: "error",
+                    title: "Oh No!",
+                    text: data.message || "Something went wrong.",
+                    showConfirmButton: false,
+                    timer: 1500,
+                });
+            }
+        })
+        .catch(error => {
+            console.error("Error archiving product:", error);
+            Swal.fire({
+                icon: "error",
+                title: "Error",
+                text: "Failed to archive product.",
+            });
+        });
+    };
+
+    // Filter products based on search term
+    const filteredProducts = products.filter(product =>
+        product.name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
+    // Rendered product rows
+    const productRows = filteredProducts.map(productData => (
+        <tr key={productData._id}>
+            <td>
+                <Link to={`/products/${productData._id}`} className={styles.productLink}>
+                    {productData.name}
+                </Link>
+            </td>
+            <td>{productData.description}</td>
+            <td>₱{productData.price.toFixed(2)}</td>
+            <td>
+                {productData.isActive ?
+                    <span className="text-success fw-bold">Available</span>
+                    :
+                    <span className="text-danger fw-bold">Archived</span>
+                }
+            </td>
+            <td>
+                <Button
+                    variant="info" // Changed color for update button
+                    size="sm"
+                    className="me-2 mb-1" // Margin-end and margin-bottom for spacing
+                    onClick={() => openEdit(productData._id)}
+                >
+                    <i className="bi bi-pencil-square"></i> Update
+                </Button>
+                {productData.isActive ?
+                    <Button
+                        variant="warning" // Changed color for disable
+                        size="sm"
+                        className="mb-1"
+                        onClick={() => archiveProduct(productData._id)}
+                    >
+                        <i className="bi bi-archive"></i> Archive
+                    </Button>
+                    :
+                    <Button
+                        variant="success"
+                        size="sm"
+                        className="mb-1"
+                        onClick={() => activateProduct(productData._id)}
+                    >
+                        <i className="bi bi-box-arrow-up"></i> Activate
+                    </Button>
+                }
+            </td>
+        </tr>
+    ));
+
+    // Rendered order cards
+    const orderCards = ordersList.length > 0 ? (
+        ordersList.map((order, index) => (
+            <Card key={order._id || index} className="mb-3 shadow-sm"> {/* Added shadow */}
+                <Accordion.Header as={Card.Header} eventKey={order._id || index} className="bg-primary text-white"> {/* Changed header color */}
+                    <h5 className="mb-0">
+                        Order ID: {order._id} - User: <span className="text-warning">{order.userId}</span>
+                    </h5>
+                </Accordion.Header>
+                <Accordion.Body eventKey={order._id || index}>
+                    <Card.Body>
+                        <h6 className="text-muted">Purchased on {moment(order.orderedOn).format("MMMM DD, YYYY hh:mm A")}:</h6>
+                        {order.productsOrdered.length > 0 ? (
+                            <Table striped bordered hover size="sm" className="mt-3">
+                                <thead className="bg-light">
+                                    <tr>
+                                        <th>Product Name</th>
+                                        <th>Quantity</th>
+                                        <th>Subtotal</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {order.productsOrdered.map((product, pIndex) => (
+                                        <tr key={product._id || pIndex}>
+                                            <td>{product.productName}</td>
+                                            <td>{product.quantity}</td>
+                                            <td>₱{(product.quantity * product.price).toFixed(2)}</td> {/* Calculate subtotal */}
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </Table>
+                        ) : (
+                            <p className="text-muted">No products found for this order.</p>
+                        )}
+                        <h4 className="mt-3 text-end">Total: <span className="text-primary fw-bold">₱{order.totalPrice.toFixed(2)}</span></h4>
+                    </Card.Body>
+                </Accordion.Body>
+            </Card>
+        ))
+    ) : (
+        <p className="text-center text-muted fs-5 mt-5">No orders available yet.</p>
+    );
+
+    return (
+        <Container className="my-5">
+            <h1 className="text-center mb-4 text-primary">Admin Dashboard</h1> {/* Larger, branded title */}
+            <p className="text-center text-muted mb-5">Manage products and view customer orders.</p>
+
+            {/* Dashboard Controls */}
+            <Row className="mb-4">
+                <Col md={8} className="d-flex justify-content-start align-items-center mb-3 mb-md-0 flex-wrap"> {/* Added flex-wrap for responsiveness */}
+                    <Button
+                        variant="primary"
+                        className="me-3 mb-2" // Added mb-2 for vertical spacing on smaller screens
+                        onClick={openAdd}
+                    >
+                        <i className="bi bi-plus-circle me-1"></i> Add New Product
+                    </Button>
+                    <Button
+                        variant={activeTab === 'products' ? 'dark' : 'outline-dark'}
+                        className="me-2 mb-2" // Added mb-2
+                        onClick={() => setActiveTab('products')}
+                    >
+                        <i className="bi bi-grid-3x3-gap-fill me-1"></i> Product Management
+                    </Button>
+                    <Button
+                        variant={activeTab === 'orders' ? 'dark' : 'outline-dark'}
+                        className="mb-2" // Added mb-2
+                        onClick={() => setActiveTab('orders')}
+                    >
+                        <i className="bi bi-card-list me-1"></i> Customer Orders
+                    </Button>
+                    {/* NEW: Link to Archived Products */}
+                    <Link to="/admin/archive" className="btn btn-secondary ms-3 mb-2"> {/* Added ms-3 for margin-left and mb-2 */}
+                        <i className="bi bi-box-arrow-in-down-right me-1"></i> View Archived
+                    </Link>
+                </Col>
+                <Col md={4}>
+                    {activeTab === 'products' && (
+                        <InputGroup className="mb-3">
+                            <FormControl
+                                placeholder="Search products..."
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                            />
+                            <Button variant="outline-secondary">
+                                <i className="bi bi-search"></i>
+                            </Button>
+                        </InputGroup>
+                    )}
+                </Col>
+            </Row>
+
+            {/* Main Content Area - Conditional Rendering */}
+            <Card className="shadow-lg p-4 bg-white rounded-3"> {/* Added shadow and rounded corners */}
+                {activeTab === 'products' ? (
+                    <>
+                        <h3 className="mb-4 text-secondary">Product List</h3>
+                        {products.length > 0 ? (
+                            <Table striped bordered hover responsive className={styles.adminTable}>
+                                <thead className="bg-primary text-white"> {/* Changed header color */}
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Description</th>
+                                        <th>Price</th>
+                                        <th>Availability</th>
+                                        <th className="text-center">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {productRows}
+                                </tbody>
+                            </Table>
+                        ) : (
+                             <p className="text-center text-muted fs-5 mt-5">No products available yet. Add one!</p>
+                        )}
+                    </>
+                ) : (
+                    <>
+                        <h3 className="mb-4 text-secondary">All Customer Orders</h3>
+                        <Accordion defaultActiveKey="0"> {/* Accordion for orders */}
+                            {orderCards}
+                        </Accordion>
+                    </>
+                )}
+            </Card>
 
 
-	return(
-		<React.Fragment>
-			<div className="text-center my-4">
-				<h2>Admin Dashboard</h2>
-				<div className="d-flex justify-content-center">
-					<Button 
-						className="mr-1"
-						variant="primary"
-						onClick={openAdd}
-					>
-						Add New Product
-					</Button>
-					{ toggle === false ? 
-						<Button variant="success" onClick={()=> toggler()}>
-							Show User Orders
-						</Button>
-					: 
-						<Button variant="danger" onClick={()=> toggler()}>
-							Show Product Details
-						</Button>
-					}
-					
-				</div>
-			</div>
-			{ toggle === false ?
-				<Table striped bordered hover responsive>
-					<thead className="bg-secondary text-white">
-						<tr>
-							<th>Name</th>
-							<th>Description</th>
-							<th>Price</th>
-							<th>Availability</th>
-							<th>Actions</th>
-						</tr>
-					</thead>
-					<tbody>
-						{products}
-					</tbody>						
-				</Table>
-			:
-				<Accordion>
-					{ordersList}
-				</Accordion>
-			}
+            {/* Add New Product Modal */}
+            <Modal show={showAdd} onHide={closeAdd} centered> {/* Centered modal */}
+                <Form onSubmit={addProduct}>
+                    <Modal.Header closeButton className="bg-primary text-white">
+                        <Modal.Title>Add New Product</Modal.Title>
+                    </Modal.Header>
+                    <Modal.Body>
+                        <Form.Group className="mb-3" controlId="productName">
+                            <Form.Label>Product Name</Form.Label>
+                            <Form.Control
+                                type="text"
+                                placeholder="Enter product name"
+                                value={name}
+                                onChange={e => setName(e.target.value)}
+                                required
+                            />
+                        </Form.Group>
 
-			<Modal show={showAdd} onHide={closeAdd}>
-				<Form onSubmit={e => addProduct(e)}>
-					<Modal.Header closeButton>
-						<Modal.Title>Add New Product</Modal.Title>
-					</Modal.Header>
-					<Modal.Body>
+                        <Form.Group className="mb-3" controlId="productDescription">
+                            <Form.Label>Description</Form.Label>
+                            <Form.Control
+                                as="textarea" // Use textarea for description
+                                rows={3}
+                                placeholder="Enter product description"
+                                value={description}
+                                onChange={e => setDescription(e.target.value)}
+                                required
+                            />
+                        </Form.Group>
 
-							<Form.Group controlId="productName">
-								<Form.Label>Name:</Form.Label>
-								<Form.Control 
-									type="text"
-									placeholder="Enter product name"
-									value={name}
-									onChange={e => setName(e.target.value)}
-									required
-								/>
-							</Form.Group>
+                        <Form.Group className="mb-3" controlId="productPrice">
+                            <Form.Label>Price</Form.Label>
+                            <InputGroup> {/* Added InputGroup for currency symbol */}
+                                <InputGroup.Text>₱</InputGroup.Text>
+                                <Form.Control
+                                    type="number"
+                                    placeholder="Enter product price"
+                                    value={price}
+                                    onChange={e => setPrice(parseFloat(e.target.value))} // Parse as float
+                                    min="0" // Prevent negative prices
+                                    required
+                                />
+                            </InputGroup>
+                        </Form.Group>
+                    </Modal.Body>
+                    <Modal.Footer>
+                        <Button variant="secondary" onClick={closeAdd}>
+                            Cancel
+                        </Button>
+                        <Button variant="primary" type="submit">
+                            Create Product
+                        </Button>
+                    </Modal.Footer>
+                </Form>
+            </Modal>
 
-							<Form.Group controlId="productDescription">
-								<Form.Label>Description:</Form.Label>
-								<Form.Control
-									type="text"
-									placeholder="Enter product description"
-									value={description}
-									onChange={e => setDescription(e.target.value)}
-									required
-								/>
-							</Form.Group>
+            {/* Edit Product Modal */}
+            <Modal show={showEdit} onHide={closeEdit} centered>
+                <Form onSubmit={e => editProduct(e, id)}>
+                    <Modal.Header closeButton className="bg-primary text-white">
+                        <Modal.Title>Edit Product</Modal.Title>
+                    </Modal.Header>
+                    <Modal.Body>
+                        <Form.Group className="mb-3" controlId="editProductName">
+                            <Form.Label>Product Name</Form.Label>
+                            <Form.Control
+                                type="text"
+                                placeholder="Enter product name"
+                                value={name}
+                                onChange={e => setName(e.target.value)}
+                                required
+                            />
+                        </Form.Group>
 
-							<Form.Group controlId="productPrice">
-								<Form.Label>Price:</Form.Label>
-								<Form.Control
-									type="number"
-									value={price}
-									onChange={e => setPrice(e.target.value)}
-									required
-								/>
-							</Form.Group>
+                        <Form.Group className="mb-3" controlId="editProductDescription">
+                            <Form.Label>Description</Form.Label>
+                            <Form.Control
+                                as="textarea"
+                                rows={3}
+                                placeholder="Enter product description"
+                                value={description}
+                                onChange={e => setDescription(e.target.value)}
+                                required
+                            />
+                        </Form.Group>
 
-					</Modal.Body>
-					<Modal.Footer>
-						<Button variant="secondary" onClick={closeAdd}>
-							Close
-						</Button>
-						<Button variant="success" type="submit">
-							Submit
-						</Button>
-					</Modal.Footer>
-
-				</Form>	
-			</Modal>
-
-			<Modal show={showEdit} onHide={closeEdit}>
-				<Form onSubmit={e => editProduct(e, id)}>
-					<Modal.Header closeButton>
-						<Modal.Title>Edit Product</Modal.Title>
-					</Modal.Header>
-					<Modal.Body>
-
-							<Form.Group controlId="productName">
-								<Form.Label>Name:</Form.Label>
-								<Form.Control
-									type="text"
-									placeholder="Enter product name"
-									value={name}
-									onChange={e => setName(e.target.value)}
-									required
-								/>
-							</Form.Group>
-
-							<Form.Group controlId="productDescription">
-								<Form.Label>Description:</Form.Label>
-								<Form.Control
-									type="text"
-									placeholder="Enter product description"
-									value={description}
-									onChange={e => setDescription(e.target.value)}
-									required
-								/>
-							</Form.Group>
-
-							<Form.Group controlId="productPrice">
-								<Form.Label>Price:</Form.Label>
-								<Form.Control
-									type="number"
-									placeholder="Enter product price"
-									value={price}
-									onChange={e => setPrice(e.target.value)}
-									required
-								/>
-							</Form.Group>
-
-					</Modal.Body>
-					<Modal.Footer>
-						<Button variant="secondary" onClick={closeEdit}>
-							Close
-						</Button>
-						<Button variant="success" type="submit">
-							Submit
-						</Button>
-					</Modal.Footer>
-				</Form>	
-			</Modal>
-		</React.Fragment>
-	);
-	
+                        <Form.Group className="mb-3" controlId="editProductPrice">
+                            <Form.Label>Price</Form.Label>
+                            <InputGroup>
+                                <InputGroup.Text>₱</InputGroup.Text>
+                                <Form.Control
+                                    type="number"
+                                    placeholder="Enter product price"
+                                    value={price}
+                                    onChange={e => setPrice(parseFloat(e.target.value))}
+                                    min="0"
+                                    required
+                                />
+                            </InputGroup>
+                        </Form.Group>
+                    </Modal.Body>
+                    <Modal.Footer>
+                        <Button variant="secondary" onClick={closeEdit}>
+                            Cancel
+                        </Button>
+                        <Button variant="success" type="submit"> {/* Changed to success for update action */}
+                            Save Changes
+                        </Button>
+                    </Modal.Footer>
+                </Form>
+            </Modal>
+        </Container>
+    );
 }
