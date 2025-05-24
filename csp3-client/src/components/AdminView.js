@@ -35,59 +35,55 @@ export default function AdminView() {
     const [searchTerm, setSearchTerm] = useState(''); // For product search
 
    // Helper function to fetch all products and filter out archived ones
-const fetchAllProducts = useCallback(() => {
-    fetch(`${process.env.REACT_APP_API_URL}/products/all`, {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-    })
-    .then(res => res.json())
-    .then(data => {
-        if (Array.isArray(data)) {
-            // Only keep products where isActive is true (not archived)
-            const activeProducts = data.filter(product => product.isActive);
-            setProducts(activeProducts);
-        } else {
-            console.error("Expected an array of products, but got:", data);
-            setProducts([]);
-        }
-    })
-    .catch(error => {
-        console.error("Error fetching all products:", error);
-        Swal.fire({
-            icon: "error",
-            title: "Oops...",
-            text: "Failed to load products. Please try again later.",
-        });
-    });
-}, []);
+        const fetchAllProducts = useCallback(() => {
+            fetch(`${process.env.REACT_APP_API_URL}/products/all`, {
+                headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (Array.isArray(data)) {
+                    // Only keep products where isActive is true (not archived)
+                    const activeProducts = data.filter(product => product.isActive);
+                    setProducts(activeProducts);
+                } else {
+                    console.error("Expected an array of products, but got:", data);
+                    setProducts([]);
+                }
+            })
+            .catch(error => {
+                console.error("Error fetching all products:", error);
+                Swal.fire({
+                    icon: "error",
+                    title: "Oops...",
+                    text: "Failed to load products. Please try again later.",
+                });
+            });
+        }, []);
 
     // Helper function to fetch all orders
-    const fetchAllOrders = useCallback(() => {
-        fetch(`${process.env.REACT_APP_API_URL}/orders/all-orders`, {
-            headers: {
-                Authorization: `Bearer ${localStorage.getItem('token')}`,
-            },
-        })
-        .then((res) => res.json())
-        .then((data) => {
-            let fetchedOrders = [];
-            if (data && data.orders && Array.isArray(data.orders) && data.orders.length > 0) {
-                fetchedOrders = data.orders;
-            } else if (data && data.order) {
-                fetchedOrders = [data.order];
-            } else {
-                console.warn('No orders or invalid data received:', data);
-            }
-            setOrdersList(fetchedOrders);
-        })
-        .catch((error) => {
-            console.error('Error fetching orders:', error);
-            Swal.fire({
-                icon: "error",
-                title: "Oops...",
-                text: "Failed to load orders. Please try again later.",
+            const fetchAllOrders = useCallback(() => {
+            fetch(`${process.env.REACT_APP_API_URL}/orders/all-orders`, {
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem('token')}`,
+                },
+            })
+            .then((res) => res.json())
+            .then((data) => {
+                let fetchedOrders = [];
+                if (data && data.orders && Array.isArray(data.orders)) {
+                    fetchedOrders = data.orders;
+                }
+                setOrdersList(fetchedOrders);
+            })
+            .catch((error) => {
+                console.error("Error fetching all orders:", error);
+                Swal.fire({
+                    icon: "error",
+                    title: "Oops...",
+                    text: "Failed to load orders. Please try again later.",
+                });
             });
-        });
-    }, []);
+        }, []);
 
     useEffect(() => {
         if (user.isAdmin) {
