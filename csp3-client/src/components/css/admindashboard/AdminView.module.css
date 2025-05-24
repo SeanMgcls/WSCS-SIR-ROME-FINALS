@@ -1,0 +1,107 @@
+/* src/components/AdminView.module.css */
+
+.adminTable {
+    margin-top: 20px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.05); /* Subtle shadow for the table */
+}
+
+.adminTable thead th {
+    background-color: #0d6efd; /* Primary blue for header */
+    color: white;
+    font-weight: bold;
+}
+
+.adminTable tbody tr:hover {
+    background-color: #f8f9fa; /* Light hover effect */
+    cursor: pointer;
+}
+
+.adminTable td {
+    vertical-align: middle; /* Align content vertically in table cells */
+}
+
+.productLink {
+    color: #0d6efd; /* Primary blue for product links */
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.productLink:hover {
+    text-decoration: underline;
+    color: #0a58ca; /* Darker blue on hover */
+}
+
+/* Icons styling for consistency */
+.adminTable button i {
+    margin-right: 5px; /* Space between icon and text */
+}
+
+/* Custom styling for buttons */
+.btn-primary {
+    background-color: #0d6efd !important;
+    border-color: #0d6efd !important;
+}
+
+.btn-primary:hover {
+    background-color: #0b5ed7 !important;
+    border-color: #0a58ca !important;
+}
+
+/* Specific styling for the 'info' update button */
+.btn-info {
+    background-color: #17a2b8 !important; /* Bootstrap info blue */
+    border-color: #17a2b8 !important;
+}
+
+.btn-info:hover {
+    background-color: #138496 !important;
+    border-color: #117a8b !important;
+}
+
+/* Specific styling for the 'warning' archive button */
+.btn-warning {
+    background-color: #ffc107 !important; /* Bootstrap warning yellow */
+    border-color: #ffc107 !important;
+    color: #343a40 !important; /* Dark text for better contrast */
+}
+
+.btn-warning:hover {
+    background-color: #e0a800 !important;
+    border-color: #d39e00 !important;
+}
+
+/* Styling for the Accordion headers */
+.accordion-header {
+    background-color: #0d6efd; /* Primary blue for header */
+    color: white;
+    border: none;
+}
+
+.accordion-header .accordion-button {
+    color: white;
+    font-weight: bold;
+    background-color: #0d6efd;
+    border: none;
+}
+
+.accordion-header .accordion-button:not(.collapsed) {
+    background-color: #0a58ca; /* Slightly darker when expanded */
+    color: white;
+    box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.125);
+}
+
+.accordion-header .accordion-button::after {
+    filter: brightness(0) invert(1); /* Invert arrow color for dark background */
+}
+
+.accordion-item {
+    border: 1px solid #dee2e6; /* Light border for each accordion item */
+    margin-bottom: 10px;
+    border-radius: 0.25rem;
+    overflow: hidden;
+}
+
+/* Card styling within accordion body */
+.accordion-body .card-body {
+    padding: 1rem;
+}

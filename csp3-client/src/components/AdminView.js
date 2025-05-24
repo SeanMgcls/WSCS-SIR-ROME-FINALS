@@ -18,7 +18,7 @@ import UserContext from '../UserContext';
 import Swal from 'sweetalert2';
 
 // Import a CSS module for custom admin styles (create this file)
-import styles from '../components/css/admindashboard/AdminView.module.css';
+import styles from './css/admindashboard/AdminView.module.css';
 
 export default function AdminView() {
     const { user } = useContext(UserContext);
@@ -358,7 +358,7 @@ export default function AdminView() {
     const orderCards = ordersList.length > 0 ? (
         ordersList.map((order, index) => (
             <Card key={order._id || index} className="mb-3 shadow-sm"> {/* Added shadow */}
-                <Accordion.Header as={Card.Header} eventKey={order._id || index} className="bg-primary text-white"> {/* Changed header color */}
+               <Accordion.Header eventKey={order._id || index} className="bg-primary text-white"> {/* Changed header color */}
                     <h5 className="mb-0">
                         Order ID: {order._id} - User: <span className="text-warning">{order.userId}</span>
                     </h5>
