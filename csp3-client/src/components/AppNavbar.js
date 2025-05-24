@@ -11,8 +11,6 @@ import styles from './css/AppNavbar.module.css';
 
 import UserContext from '../UserContext';
 
-import ualogo from '../images/ualogo.png'; // Import the logo image
-
 // Import the image if it's in the src folder (e.g., if you place it in src/assets/)
 // import UALogo from '../assets/images/ua-shop-logo.png'; // Example if your image is in src/assets/images/
 
@@ -23,21 +21,12 @@ export default function AppNavBar() {
         <Navbar expand="lg" className={`${styles.navbar} py-3 shadow-lg`}>
             {/* Brand/Logo - MODIFIED HERE */}
             <Link className={`${styles.navbarbrand} ms-3`} to="/">
-                {/* Option 1: If your image is in the 'public' folder */}
                 <img
-                    src={ualogo}// Path relative to the public folder
+                    src="/images/ualogo.png" // ✅ Correct usage for public images
                     alt="The UA Shop Logo"
-                    className={styles.brandImage} // Apply a custom class for sizing/styling
+                    className={styles.brandImage}
                 />
-
-                {/* Option 2: If you imported the image (e.g., from src/assets/) */}
-                {/* <img
-                    src={UALogo} // Use the imported variable
-                    alt="The UA Shop Logo"
-                    className={styles.brandImage} // Apply a custom class for sizing/styling
-                /> */}
-
-                 UA Shop
+                UA Shop
             </Link>
 
             <Navbar.Toggle aria-controls="basic-navbar-nav" />

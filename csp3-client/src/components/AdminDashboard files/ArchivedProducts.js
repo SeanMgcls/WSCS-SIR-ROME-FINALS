@@ -242,7 +242,7 @@ export default function ArchivedProducts() {
                     </InputGroup>
                 </Col>
                 <Col md={6} className="d-flex justify-content-end mt-3 mt-md-0">
-                    <Link to="/admin" className="btn btn-dark"> {/* Link back to Admin Dashboard */}
+                    <Link to="/admin-dashboard" className="btn btn-dark"> {/* Link back to Admin Dashboard */}
                         <i className="bi bi-arrow-left me-2"></i> Back to Dashboard
                     </Link>
                 </Col>

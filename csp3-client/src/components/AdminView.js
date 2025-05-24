@@ -34,29 +34,31 @@ export default function AdminView() {
     const [ordersList, setOrdersList] = useState([]);
     const [searchTerm, setSearchTerm] = useState(''); // For product search
 
-    // Helper function to fetch all products
-    const fetchAllProducts = useCallback(() => {
-        fetch(`${process.env.REACT_APP_API_URL}/products/all`, {
-            headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-        })
-        .then(res => res.json())
-        .then(data => {
-            if (Array.isArray(data)) {
-                setProducts(data);
-            } else {
-                console.error("Expected an array of products, but got:", data);
-                setProducts([]); // Ensure products is an empty array on error
-            }
-        })
-        .catch(error => {
-            console.error("Error fetching all products:", error);
-            Swal.fire({
-                icon: "error",
-                title: "Oops...",
-                text: "Failed to load products. Please try again later.",
-            });
+   // Helper function to fetch all products and filter out archived ones
+const fetchAllProducts = useCallback(() => {
+    fetch(`${process.env.REACT_APP_API_URL}/products/all`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (Array.isArray(data)) {
+            // Only keep products where isActive is true (not archived)
+            const activeProducts = data.filter(product => product.isActive);
+            setProducts(activeProducts);
+        } else {
+            console.error("Expected an array of products, but got:", data);
+            setProducts([]);
+        }
+    })
+    .catch(error => {
+        console.error("Error fetching all products:", error);
+        Swal.fire({
+            icon: "error",
+            title: "Oops...",
+            text: "Failed to load products. Please try again later.",
         });
-    }, []); // Empty dependency array means this function is created once
+    });
+}, []);
 
     // Helper function to fetch all orders
     const fetchAllOrders = useCallback(() => {
@@ -301,7 +303,7 @@ export default function AdminView() {
             });
         });
     };
-
+    
     // Filter products based on search term
     const filteredProducts = products.filter(product =>
         product.name.toLowerCase().includes(searchTerm.toLowerCase())

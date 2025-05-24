@@ -2,7 +2,7 @@
 
 .introSection {
     /* **NEW BACKGROUND IMAGE PROPERTIES** */
-    background-image: url('../../images/uashop.png'); /* **Corrected Path** */
+    background-image: url('../../../public/images/uashop.png'); /* **Corrected Path** */
     background-size: cover; /* Ensures the image covers the entire section */
     background-position: center; /* Centers the image */
     background-repeat: no-repeat; /* Prevents the image from repeating */
