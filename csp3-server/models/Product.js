@@ -14,6 +14,10 @@ const productSchema = new mongoose.Schema({
         type: Number,
         required: [true, 'Course Price is Required']
     },
+    image: {
+        type: String,
+        required: [true, 'Course Image is Required']
+    },
     isActive: {
         type: Boolean,
         default: true

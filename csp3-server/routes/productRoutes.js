@@ -22,6 +22,8 @@ router.post("/searchByPrice", productController.searchByProductPrice);
 // Route to get a single product by ID (publicly accessible, or add verify for logged-in users)
 router.get("/:productId", productController.getProduct);
 
+router.post('/search', productController.searchProducts);
+
 // Route to update a product (admin only)
 router.patch("/:productId", verify, verifyAdmin, productController.updateProduct);
 

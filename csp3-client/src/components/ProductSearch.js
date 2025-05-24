@@ -9,14 +9,17 @@ const ProductSearch = () => {
   const [searchResults, setSearchResults] = useState(null);
   const [error, setError] = useState(null);
 
-  const handleSearchByName = async () => {
+  // Unified handler: search for active products by name and/or price
+  const handleSearch = async () => {
     try {
-      const response = await fetch(`${process.env.REACT_APP_API_URL}/products/searchByName`, {
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/products/search`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ name: searchQuery })
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: searchQuery,
+          minPrice: minPrice,
+          maxPrice: maxPrice
+        })
       });
 
       if (!response.ok) {
@@ -25,35 +28,13 @@ const ProductSearch = () => {
       }
 
       const data = await response.json();
-      setSearchResults(data);
+      // Always set an array, even if null or undefined
+      setSearchResults(Array.isArray(data) ? data : []);
       setError(null);
     } catch (error) {
-      console.error('Error searching for products by name:', error);
+      console.error('Error searching for products:', error);
       setError('An error occurred while searching for products. Please try again.');
-    }
-  };
-
-  const handleSearchByPrice = async () => {
-    try {
-      const response = await fetch(`${process.env.REACT_APP_API_URL}/products/searchByPrice`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ minPrice, maxPrice })
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Unknown error');
-      }
-
-      const data = await response.json();
-      setSearchResults(data.products);
-      setError(null);
-    } catch (error) {
-      console.error('Error searching for products by price:', error);
-      setError('An error occurred while searching for products. Please try again.');
+      setSearchResults([]);
     }
   };
 
@@ -85,23 +66,19 @@ const ProductSearch = () => {
             className="btn btn-secondary"
             type="button"
             onClick={() => setMinPrice(prevMinPrice => Math.max(prevMinPrice - 1000, 0))}
-          >
-            -
-          </button>
+          >-</button>
           <input
             type="number"
             id="minPrice"
             className="form-control"
             value={minPrice}
-            onChange={event => setMinPrice(parseInt(event.target.value))}
+            onChange={event => setMinPrice(Number(event.target.value))}
           />
           <button
             className="btn btn-secondary"
             type="button"
             onClick={() => setMinPrice(prevMinPrice => Math.min(prevMinPrice + 1000, maxPrice - 1000))}
-          >
-            +
-          </button>
+          >+</button>
         </div>
       </div>
       <div className="form-group">
@@ -111,30 +88,23 @@ const ProductSearch = () => {
             className="btn btn-secondary"
             type="button"
             onClick={() => setMaxPrice(prevMaxPrice => Math.max(prevMaxPrice - 1000, minPrice + 1000))}
-          >
-            -
-          </button>
+          >-</button>
           <input
             type="number"
             id="maxPrice"
             className="form-control"
             value={maxPrice}
-            onChange={event => setMaxPrice(parseInt(event.target.value))}
+            onChange={event => setMaxPrice(Number(event.target.value))}
           />
           <button
             className="btn btn-secondary"
             type="button"
             onClick={() => setMaxPrice(prevMaxPrice => Math.min(prevMaxPrice + 1000, 100000))}
-          >
-            +
-          </button>
+          >+</button>
         </div>
       </div>
-      <button className="btn btn-primary my-4" onClick={handleSearchByName}>
-        Search by Name
-      </button>
-      <button className="btn btn-primary mx-2 my-4" onClick={handleSearchByPrice}>
-        Search by Price
+      <button className="btn btn-primary my-4" onClick={handleSearch}>
+        Search
       </button>
       <button className="btn btn-danger mx-2 my-4" onClick={handleClear}>
         Clear
@@ -152,11 +122,11 @@ const ProductSearch = () => {
               </Card>
             </Col>
           ) : (
-            <ul>
+            <div className="row">
               {searchResults.map(product => (
                 <Product data={product} key={product._id} />
               ))}
-            </ul>
+            </div>
           )}
         </>
       )}

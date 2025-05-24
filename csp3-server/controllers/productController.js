@@ -33,7 +33,8 @@ module.exports.addProduct = (req,res) => {
     let newProduct = new Product({
         name : req.body.name,
         description : req.body.description,
-        price : req.body.price
+        price : req.body.price,
+        image : req.body.image // Assuming image is also part of the request body
     });
 
     return newProduct.save()
@@ -125,3 +126,17 @@ module.exports.searchByProductPrice = (req,res) => {
     .then((products)  => res.status(200).send(products)) // Changed from {products} to products for consistency
     .catch(err => res.status(500).send({ error: "Error in Find", details: err}))
 }
+
+module.exports.searchProducts = (req, res) => {
+    const { name = "", minPrice = 0, maxPrice = 100000 } = req.body;
+    let filter = {
+        isActive: true,
+        price: { $gte: minPrice, $lte: maxPrice }
+    };
+    if (name && name.trim() !== "") {
+        filter.name = { $regex: name, $options: "i" };
+    }
+    Product.find(filter)
+        .then(products => res.status(200).send(products))
+        .catch(err => res.status(500).send({ error: "Error in Find", details: err }));
+};

@@ -1,23 +1,23 @@
 import React from 'react';
-import { Jumbotron, Row, Col } from 'react-bootstrap';
+import { Row, Col, Card } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 
-export default function Banner({data}){
-
+export default function Banner({ data }) {
 	const { title, content, destination, label } = data;
-	
-	return(
+
+	return (
 		<Row>
 			<Col>
-				<Jumbotron className="text-center">
-					<h1>{title}</h1>
-					<p id="motto">{content}</p>
-					<Link className="btn btn-primary" to={destination}>
-						{label}
-					</Link>
-				</Jumbotron>
+				<Card className="text-center my-4 py-4">
+					<Card.Body>
+						<h1>{title}</h1>
+						<p id="motto">{content}</p>
+						<Link className="btn btn-primary" to={destination}>
+							{label}
+						</Link>
+					</Card.Body>
+				</Card>
 			</Col>
 		</Row>
 	);
-	
 }

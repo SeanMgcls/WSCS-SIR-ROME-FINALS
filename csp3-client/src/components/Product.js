@@ -4,13 +4,20 @@ import { Link } from 'react-router-dom';
 
 export default function Product(props) {
   const { breakPoint, data } = props;
-
-
-  const { _id, name, description, price, product } = data;
+  const { _id, name, description, price, image } = data; // Add imageUrl
 
   return (
     <Col xs={12} md={breakPoint} className="mt-4">
       <Card className="card1">
+        {/* Show image at the top if imageUrl exists */}
+        {image && (
+          <Card.Img
+            variant="top"
+            src={image}
+            alt={name}
+            style={{ objectFit: 'cover', height: '200px' }}
+          />
+        )}
         <Card.Body>
           <Card.Title className="text-center card2">
             <Link to={`/products/${_id}`}>{name}</Link>

@@ -1,92 +1,56 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Card, Accordion, Jumbotron } from 'react-bootstrap';
+import { Container, Card, Accordion } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import moment from 'moment';
 
-export default function Orders(){
+export default function Orders() {
+	const [orders, setOrders] = useState([]);
 
-	const [ordersList, setOrdersList] = useState([]);
-
-	useEffect(()=> {
-
-		fetch(`${ process.env.REACT_APP_API_URL}/orders/my-orders`, {
+	useEffect(() => {
+		fetch(`${process.env.REACT_APP_API_URL}/orders/my-orders`, {
 			headers: {
-				Authorization: `Bearer ${ localStorage.getItem('token') }`
-			}
+				Authorization: `Bearer ${localStorage.getItem('token')}`,
+			},
 		})
-		.then(res => res.json())
-		.then(data => {
-			console.log(data)
-			const { orders } = data;
-
-			console.log(orders)
-
-			
-			const myOrders = orders.map((item, index) => {
-				return(
-					<Card key={item._id}>
-							<Accordion.Toggle 
-								as={Card.Header}
-								eventKey={index + 1}
-								className="bg-secondary text-white"
-							>
-								Order #{index + 1} - Purchased on: {moment(item.purchasedOn).format("MM-DD-YYYY")} (Click for Details)
-							</Accordion.Toggle>
-							<Accordion.Collapse eventKey={index + 1}>
-								<Card.Body>
-									<h6>Items:</h6>
-									<ul>
-									
-										{
-										item.productsOrdered.map((subitem) => {
-
-											fetch(`${ process.env.REACT_APP_API_URL}/products/${subitem.productId}`)
-											.then(res => res.json())
-											.then(data => {
-											});
-
-											return (
-												<li key={subitem._id}>
-													{subitem.productName} - Quantity: {subitem.quantity}
-												</li>
-											);
-
-										})
-
-									}
-											
-									</ul>
-									<h6>
-										Total: <span className="text-warning">₱{item.totalPrice}</span>
-									</h6>
-								</Card.Body>
-							</Accordion.Collapse>
-						</Card>
-
-					)
-			})
-
-			setOrdersList(myOrders)
-			
-		})
-
+			.then(res => res.json())
+			.then(data => {
+				setOrders(data.orders || []);
+			});
 	}, []);
 
-
-
-	return(
-		ordersList.length === 0 ?
-			<Jumbotron>
-					<h3 className="text-center">
-						No orders placed yet! <Link to="/products">Start shopping.</Link>
-					</h3>
-			</Jumbotron>
-		:
-		<Container>
-			<h2 className="text-center my-4">Order History</h2>
-			<Accordion>
-				{ordersList}
-			</Accordion>
-		</Container>
-	)
+	return (
+		orders.length === 0 ? (
+			<div className="p-5 my-4 bg-light rounded text-center">
+				<h3>
+					No orders placed yet! <Link to="/products">Start shopping.</Link>
+				</h3>
+			</div>
+		) : (
+			<Container>
+				<h2 className="text-center my-4">Order History</h2>
+				<Accordion>
+					{orders.map((item, index) => (
+						<Accordion.Item eventKey={index.toString()} key={item._id}>
+							<Accordion.Header>
+								Order #{index + 1} - Purchased on: {moment(item.purchasedOn).format("MM-DD-YYYY")} (Click for Details)
+							</Accordion.Header>
+							<Accordion.Body>
+								<h6>Items:</h6>
+								<ul>
+									{item.productsOrdered.map(subitem => (
+										<li key={subitem._id}>
+											{subitem.productName} - Quantity: {subitem.quantity}
+										</li>
+									))}
+								</ul>
+								<h6>
+									Total: <span className="text-warning">₱{item.totalPrice}</span>
+								</h6>
+							</Accordion.Body>
+						</Accordion.Item>
+					))}
+				</Accordion>
+			</Container>
+		)
+	);
 }

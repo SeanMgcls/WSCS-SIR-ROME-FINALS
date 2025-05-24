@@ -32,6 +32,7 @@ export default function AdminView() {
     const [showEdit, setShowEdit] = useState(false);
     const [activeTab, setActiveTab] = useState('products'); // 'products' or 'orders'
     const [ordersList, setOrdersList] = useState([]);
+    const [image, setImage] = useState(""); 
     const [searchTerm, setSearchTerm] = useState(''); // For product search
 
    // Helper function to fetch all products and filter out archived ones
@@ -98,8 +99,10 @@ export default function AdminView() {
         setName("");
         setDescription("");
         setPrice(0);
+        setImage(""); // <-- Reset imageUrl
         setShowAdd(false);
     };
+
 
     // Edit Product Modal functions
     const openEdit = (productId) => {
@@ -133,49 +136,36 @@ export default function AdminView() {
     const addProduct = (e) => {
         e.preventDefault();
         fetch(`${process.env.REACT_APP_API_URL}/products`, {
-            method: 'POST',
+            method: "POST",
             headers: {
-                Authorization: `Bearer ${localStorage.getItem('token')}`,
-                'Content-Type': 'application/json'
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${localStorage.getItem('token')}`
             },
             body: JSON.stringify({
-                name: name,
-                description: description,
-                price: price
+                name,
+                description,
+                price,
+                image // <-- Send imageUrl
             })
         })
         .then(res => res.json())
         .then(data => {
-            if (data.message === 'Product added successfully') { // Check for a specific message
+            if (data._id) {
                 Swal.fire({
                     icon: "success",
-                    title: "Product Added!",
-                    text: "Product successfully added.",
-                    showConfirmButton: false,
-                    timer: 1500,
+                    title: "Product added!"
                 });
                 closeAdd();
-                fetchAllProducts(); // Re-fetch products to update the list
+                fetchAllProducts();
             } else {
                 Swal.fire({
                     icon: "error",
-                    title: "Oh No!",
-                    text: data.message || "Something went wrong.", // Use data.message if available
-                    showConfirmButton: false,
-                    timer: 1500,
+                    title: "Failed to add product"
                 });
-                closeAdd();
             }
-        })
-        .catch(error => {
-            console.error("Error adding product:", error);
-            Swal.fire({
-                icon: "error",
-                title: "Error",
-                text: "Failed to add product.",
-            });
         });
     };
+
 
     const editProduct = (e, productId) => {
         e.preventDefault();
@@ -473,69 +463,106 @@ export default function AdminView() {
                     </>
                 ) : (
                     <>
-                        <h3 className="mb-4 text-secondary">All Customer Orders</h3>
-                        <Accordion defaultActiveKey="0"> {/* Accordion for orders */}
-                            {orderCards}
-                        </Accordion>
+                       <h3 className="mb-4 text-secondary">All Customer Orders</h3>
+                            <Accordion defaultActiveKey="0">
+                            {ordersList.length > 0 ? (
+                                ordersList.map((order, index) => (
+                                <Accordion.Item eventKey={order._id || index} key={order._id || index} className="mb-3 shadow-sm">
+                                    <Accordion.Header>
+                                    <h5 className="mb-0">
+                                        Order ID: {order._id} - User: <span className="text-warning">{order.userId}</span>
+                                    </h5>
+                                    </Accordion.Header>
+                                    <Accordion.Body>
+                                    <h6 className="text-muted">
+                                        Purchased on {moment(order.orderedOn).format("MMMM DD, YYYY hh:mm A")}:
+                                    </h6>
+                                    {order.productsOrdered.length > 0 ? (
+                                        <Table striped bordered hover size="sm" className="mt-3">
+                                        <thead className="bg-light">
+                                            <tr>
+                                            <th>Product Name</th>
+                                            <th>Quantity</th>
+                                            <th>Subtotal</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {order.productsOrdered.map((product, pIndex) => (
+                                            <tr key={product._id || pIndex}>
+                                                <td>{product.productName}</td>
+                                                <td>{product.quantity}</td>
+                                                <td>₱{(product.quantity * product.price).toFixed(2)}</td>
+                                            </tr>
+                                            ))}
+                                        </tbody>
+                                        </Table>
+                                    ) : (
+                                        <p className="text-muted">No products found for this order.</p>
+                                    )}
+                                    <h4 className="mt-3 text-end">
+                                        Total: <span className="text-primary fw-bold">₱{order.totalPrice.toFixed(2)}</span>
+                                    </h4>
+                                    </Accordion.Body>
+                                </Accordion.Item>
+                                ))
+                            ) : (
+                                <p className="text-center text-muted fs-5 mt-5">No orders available yet.</p>
+                            )}
+                            </Accordion>
                     </>
                 )}
             </Card>
 
 
             {/* Add New Product Modal */}
-            <Modal show={showAdd} onHide={closeAdd} centered> {/* Centered modal */}
-                <Form onSubmit={addProduct}>
-                    <Modal.Header closeButton className="bg-primary text-white">
-                        <Modal.Title>Add New Product</Modal.Title>
-                    </Modal.Header>
-                    <Modal.Body>
-                        <Form.Group className="mb-3" controlId="productName">
-                            <Form.Label>Product Name</Form.Label>
+            <Modal show={showAdd} onHide={closeAdd}>
+                <Modal.Header closeButton>
+                    <Modal.Title>Add Product</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    <Form onSubmit={addProduct}>
+                        <Form.Group>
+                            <Form.Label>Name</Form.Label>
                             <Form.Control
                                 type="text"
-                                placeholder="Enter product name"
                                 value={name}
                                 onChange={e => setName(e.target.value)}
                                 required
                             />
                         </Form.Group>
-
-                        <Form.Group className="mb-3" controlId="productDescription">
+                        <Form.Group>
                             <Form.Label>Description</Form.Label>
                             <Form.Control
-                                as="textarea" // Use textarea for description
+                                as="textarea"
                                 rows={3}
-                                placeholder="Enter product description"
                                 value={description}
                                 onChange={e => setDescription(e.target.value)}
                                 required
                             />
                         </Form.Group>
-
-                        <Form.Group className="mb-3" controlId="productPrice">
+                        <Form.Group>
                             <Form.Label>Price</Form.Label>
-                            <InputGroup> {/* Added InputGroup for currency symbol */}
-                                <InputGroup.Text>₱</InputGroup.Text>
-                                <Form.Control
-                                    type="number"
-                                    placeholder="Enter product price"
-                                    value={price}
-                                    onChange={e => setPrice(parseFloat(e.target.value))} // Parse as float
-                                    min="0" // Prevent negative prices
-                                    required
-                                />
-                            </InputGroup>
+                            <Form.Control
+                                type="number"
+                                value={price}
+                                onChange={e => setPrice(Number(e.target.value))}
+                                required
+                            />
                         </Form.Group>
-                    </Modal.Body>
-                    <Modal.Footer>
-                        <Button variant="secondary" onClick={closeAdd}>
-                            Cancel
+                        <Form.Group>
+                            <Form.Label>Image URL</Form.Label>
+                            <Form.Control
+                                type="text"
+                                value={image}
+                                onChange={e => setImage(e.target.value)}
+                                placeholder="https://example.com/image.jpg"
+                            />
+                        </Form.Group>
+                        <Button variant="primary" type="submit" block>
+                            Add Product
                         </Button>
-                        <Button variant="primary" type="submit">
-                            Create Product
-                        </Button>
-                    </Modal.Footer>
-                </Form>
+                    </Form>
+                </Modal.Body>
             </Modal>
 
             {/* Edit Product Modal */}
