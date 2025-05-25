@@ -15,7 +15,8 @@ import './App.css';
 import 'bootswatch/dist/cosmo/bootstrap.min.css';
 import { UserProvider } from './UserContext';
 import AdminView from "./components/AdminView";
-import ArchivedProducts from "./components/AdminDashboard files/ArchivedProducts";        
+import ArchivedProducts from "./components/AdminDashboard files/ArchivedProducts";
+ 
 
 export default function App() {
 

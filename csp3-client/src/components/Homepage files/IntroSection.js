@@ -2,6 +2,7 @@
 import React from 'react';
 import { Row, Col } from 'react-bootstrap';
 
+
 export default function IntroSection() {
     return (
         <Row className="text-center py-5"> {/* Keep py-5 for internal vertical spacing */}

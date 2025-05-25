@@ -14,4 +14,6 @@ router.patch('/resetPassword', verify, userController.resetPassword);
 
 router.patch("/:id/setAsAdmin", verify, verifyAdmin,  userController.setAsAdmin)
 
+router.patch('/edit', verify, userController.editProfile);
+
 module.exports = router;

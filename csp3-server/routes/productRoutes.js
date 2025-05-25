@@ -24,6 +24,8 @@ router.get("/:productId", productController.getProduct);
 
 router.post('/search', productController.searchProducts);
 
+router.get('/products/:productId', productController.getProduct);
+
 // Route to update a product (admin only)
 router.patch("/:productId", verify, verifyAdmin, productController.updateProduct);
 

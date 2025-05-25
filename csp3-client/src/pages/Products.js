@@ -2,7 +2,6 @@ import React, { useState, useEffect, useContext } from 'react';
 import AdminView from '../components/AdminView';
 import CustomerView from '../components/CustomerView';
 import { Container } from 'react-bootstrap';
-
 import UserContext from '../UserContext';
 
 export default function Products(){
@@ -29,7 +28,7 @@ export default function Products(){
 				user.isAdmin === true ?
 					<AdminView fetchData={fetchData}/>
 				:
-					<CustomerView/>
+					<CustomerView products={products}/>
 			}
 		</Container>
 	)
