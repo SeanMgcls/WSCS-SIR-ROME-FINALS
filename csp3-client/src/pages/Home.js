@@ -19,17 +19,17 @@ export default function Home() {
     };
 
     return (
-        <React.Fragment>
+    <div className="gradient-bg" style={{ minHeight: "100vh" }}>
             {/* Wrap Banner in a Container for width constraint */}
-            <Container>
-                <Banner data={bannerData} />
-            </Container>
-
             <section className={styles.introSection}>
                 <Container>
                     <IntroSection />
                 </Container>
             </section>
+            
+            <Container>
+                <Banner data={bannerData} />
+            </Container>
 
             <section className={styles.featuredProductsSection}>
                 <Container>
@@ -48,6 +48,6 @@ export default function Home() {
                     <ContactSection />
                 </Container>
             </section>
-        </React.Fragment>
+        </div>
     );
 }

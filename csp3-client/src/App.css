@@ -91,9 +91,3 @@ input[type=number] {
     border-radius: 2rem !important;
 }
 
-.gradient-bg {
-    min-height: 100vh;
-    width: 100vw;
-    background: linear-gradient(135deg, #f6fcd3 50%, #005de0 100%, #001999 50%);
-    /* You can use any gradient you like! */
-}
