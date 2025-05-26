@@ -105,3 +105,14 @@
 .accordion-body .card-body {
     padding: 1rem;
 }
+
+.adminTable {
+  font-size: 0.96rem;
+  table-layout: fixed;
+}
+.productLink {
+  color: #2156c4;
+  text-decoration: underline;
+  font-weight: 500;
+  word-break: break-word;
+}

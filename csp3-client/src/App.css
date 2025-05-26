@@ -78,3 +78,22 @@ input[type=number] {
     transform: rotate(360deg);
   }
 }
+
+.login-gradient-bg {
+    min-height: 100vh;
+    width: 100vw;
+    background: linear-gradient(135deg, #f6fcd3 50%, #005de0 100%, #001999 50%); /* Gradient from blue to purple */
+    /* You can use any gradient colors you like */
+}
+
+/* In your CSS file */
+.super-rounded {
+    border-radius: 2rem !important;
+}
+
+.gradient-bg {
+    min-height: 100vh;
+    width: 100vw;
+    background: linear-gradient(135deg, #f6fcd3 50%, #005de0 100%, #001999 50%);
+    /* You can use any gradient you like! */
+}

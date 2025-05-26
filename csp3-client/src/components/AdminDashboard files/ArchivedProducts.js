@@ -183,6 +183,52 @@ export default function ArchivedProducts() {
         });
     };
 
+    const deleteProduct = (productId) => {
+    console.log("Attempting to delete product with ID:", productId);
+    Swal.fire({
+        title: 'Are you sure?',
+        text: "This will permanently delete the product! This action cannot be undone.",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'Yes, delete it!'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            fetch(`${process.env.REACT_APP_API_URL}/products/${productId}`, {
+                method: 'DELETE',
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem('token')}`,
+                }
+            })
+            .then(async res => {
+                let data;
+                try {
+                    data = await res.json();
+                } catch (e) {
+                    throw new Error('Server returned an unexpected response.');
+                }
+                if (!res.ok) {
+                    throw new Error(data.message || 'Failed to delete product.');
+                }
+                return data;
+            })
+            .then(data => {
+                Swal.fire('Deleted!', 'Product has been deleted.', 'success');
+                fetchArchivedProducts(); // <<-- FIXED HERE
+            })
+            .catch(error => {
+                if (error.message.includes('404') || error.message.toLowerCase().includes('not found')) {
+                    Swal.fire('Error!', 'Product not found or already deleted.', 'error');
+                } else {
+                    Swal.fire('Error!', error.message, 'error');
+                }
+                console.error("Error deleting product:", error);
+            });
+        }
+    });
+};
+
     // Filter archived products based on search term
     const filteredArchivedProducts = archivedProducts.filter(product =>
         product.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -216,6 +262,14 @@ export default function ArchivedProducts() {
                     onClick={() => activateProduct(productData._id)}
                 >
                     <i className="bi bi-box-arrow-up"></i> Activate
+                </Button>
+                <Button
+                        variant="danger"
+                        size="sm"
+                        className="mb-1"
+                        onClick={() => deleteProduct(productData._id)}
+                    >
+                        <i className="bi bi-trash"></i> Delete
                 </Button>
             </td>
         </tr>

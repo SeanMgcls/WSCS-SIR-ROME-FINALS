@@ -150,3 +150,17 @@ module.exports.getProductById = (req, res) => {
         })
         .catch(err => res.status(500).send({ error: "Error in Find", details: err }));
 };
+
+module.exports.deleteProduct = (req, res) => {
+    return Product.findByIdAndDelete(req.params.productId)
+        .then(deletedProduct => {
+            if (!deletedProduct) {
+                return res.status(404).send({ message: 'Product not found.' });
+            }
+            return res.status(200).send({
+                message: 'Product deleted successfully',
+                deletedProduct: deletedProduct
+            });
+        })
+        .catch(err => res.status(500).send({ error: "Error in Delete", details: err }));
+};

@@ -32,59 +32,77 @@ export default function AdminView() {
     const [showEdit, setShowEdit] = useState(false);
     const [activeTab, setActiveTab] = useState('products'); // 'products' or 'orders'
     const [ordersList, setOrdersList] = useState([]);
-    const [image, setImage] = useState(""); 
+    const [image, setImage] = useState("");
     const [searchTerm, setSearchTerm] = useState(''); // For product search
 
-   // Helper function to fetch all products and filter out archived ones
-        const fetchAllProducts = useCallback(() => {
-            fetch(`${process.env.REACT_APP_API_URL}/products/all`, {
-                headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (Array.isArray(data)) {
-                    // Only keep products where isActive is true (not archived)
-                    const activeProducts = data.filter(product => product.isActive);
-                    setProducts(activeProducts);
-                } else {
-                    console.error("Expected an array of products, but got:", data);
-                    setProducts([]);
+    // Helper function to fetch all products and filter out archived ones
+    const fetchAllProducts = useCallback(() => {
+        fetch(`${process.env.REACT_APP_API_URL}/products/all`, {
+            headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+        })
+        .then(res => {
+            if (!res.ok) {
+                // Check if response is not ok (e.g., 401, 403, 500)
+                if (res.status === 401 || res.status === 403) {
+                    throw new Error("Unauthorized access. Please log in as an admin.");
                 }
-            })
-            .catch(error => {
-                console.error("Error fetching all products:", error);
-                Swal.fire({
-                    icon: "error",
-                    title: "Oops...",
-                    text: "Failed to load products. Please try again later.",
-                });
+                throw new Error(`HTTP error! status: ${res.status}`);
+            }
+            return res.json();
+        })
+        .then(data => {
+            if (Array.isArray(data)) {
+                // Only keep products where isActive is true (not archived)
+                const activeProducts = data.filter(product => product.isActive);
+                setProducts(activeProducts);
+            } else {
+                console.error("Expected an array of products, but got:", data);
+                setProducts([]);
+            }
+        })
+        .catch(error => {
+            console.error("Error fetching all products:", error);
+            Swal.fire({
+                icon: "error",
+                title: "Oops...",
+                text: error.message || "Failed to load products. Please try again later.",
             });
-        }, []);
+        });
+    }, []);
 
     // Helper function to fetch all orders
-            const fetchAllOrders = useCallback(() => {
-            fetch(`${process.env.REACT_APP_API_URL}/orders/all-orders`, {
-                headers: {
-                    Authorization: `Bearer ${localStorage.getItem('token')}`,
-                },
-            })
-            .then((res) => res.json())
-            .then((data) => {
-                let fetchedOrders = [];
-                if (data && data.orders && Array.isArray(data.orders)) {
-                    fetchedOrders = data.orders;
+    const fetchAllOrders = useCallback(() => {
+        fetch(`${process.env.REACT_APP_API_URL}/orders/all-orders`, {
+            headers: {
+                Authorization: `Bearer ${localStorage.getItem('token')}`,
+            },
+        })
+        .then((res) => {
+            if (!res.ok) {
+                 if (res.status === 401 || res.status === 403) {
+                    throw new Error("Unauthorized access. Please log in as an admin.");
                 }
-                setOrdersList(fetchedOrders);
-            })
-            .catch((error) => {
-                console.error("Error fetching all orders:", error);
-                Swal.fire({
-                    icon: "error",
-                    title: "Oops...",
-                    text: "Failed to load orders. Please try again later.",
-                });
+                throw new Error(`HTTP error! status: ${res.status}`);
+            }
+            return res.json();
+        })
+        .then((data) => {
+            let fetchedOrders = [];
+            // Ensure data.orders is an array before setting
+            if (data && data.orders && Array.isArray(data.orders)) {
+                fetchedOrders = data.orders;
+            }
+            setOrdersList(fetchedOrders);
+        })
+        .catch((error) => {
+            console.error("Error fetching all orders:", error);
+            Swal.fire({
+                icon: "error",
+                title: "Oops...",
+                text: error.message || "Failed to load orders. Please try again later.",
             });
-        }, []);
+        });
+    }, []);
 
     useEffect(() => {
         if (user.isAdmin) {
@@ -99,7 +117,7 @@ export default function AdminView() {
         setName("");
         setDescription("");
         setPrice(0);
-        setImage(""); // <-- Reset imageUrl
+        setImage(""); // Reset imageUrl
         setShowAdd(false);
     };
 
@@ -108,7 +126,12 @@ export default function AdminView() {
     const openEdit = (productId) => {
         setId(productId);
         fetch(`${process.env.REACT_APP_API_URL}/products/${productId}`)
-            .then(res => res.json())
+            .then(res => {
+                if (!res.ok) {
+                    throw new Error(`HTTP error! status: ${res.status}`);
+                }
+                return res.json();
+            })
             .then(data => {
                 setName(data.name);
                 setDescription(data.description);
@@ -120,7 +143,7 @@ export default function AdminView() {
                 Swal.fire({
                     icon: "error",
                     title: "Oops...",
-                    text: "Failed to load product details for editing.",
+                    text: error.message || "Failed to load product details for editing.",
                 });
             });
     };
@@ -145,24 +168,34 @@ export default function AdminView() {
                 name,
                 description,
                 price,
-                image // <-- Send imageUrl
+                image // Changed to imageUrl to match common backend naming
             })
         })
         .then(res => res.json())
         .then(data => {
-            if (data._id) {
+            if (data && data._id) { // Check for _id to confirm creation
                 Swal.fire({
                     icon: "success",
-                    title: "Product added!"
+                    title: "Product added!",
+                    text: `Product "${data.name}" has been added.`,
                 });
                 closeAdd();
-                fetchAllProducts();
+                fetchAllProducts(); // Re-fetch products to update the list
             } else {
                 Swal.fire({
                     icon: "error",
-                    title: "Failed to add product"
+                    title: "Failed to add product",
+                    text: data.message || "An unexpected error occurred.",
                 });
             }
+        })
+        .catch(error => {
+            console.error("Error adding product:", error);
+            Swal.fire({
+                icon: "error",
+                title: "Error",
+                text: "Failed to add product. Please check your input and try again.",
+            });
         });
     };
 
@@ -231,7 +264,7 @@ export default function AdminView() {
                     showConfirmButton: false,
                     timer: 1500,
                 });
-                fetchAllProducts(); // Re-fetch products
+                fetchAllProducts(); // Re-fetch products (will now include the activated product in active list)
             } else {
                 Swal.fire({
                     icon: "error",
@@ -269,7 +302,7 @@ export default function AdminView() {
                     showConfirmButton: false,
                     timer: 1500,
                 });
-                fetchAllProducts(); // Re-fetch products
+                fetchAllProducts(); // Re-fetch products (will now exclude the archived product from active list)
             } else {
                 Swal.fire({
                     icon: "error",
@@ -289,103 +322,76 @@ export default function AdminView() {
             });
         });
     };
-    
+
+    const updateOrderStatus = (orderId, newStatus) => {
+  fetch(`${process.env.REACT_APP_API_URL}/orders/${orderId}/status`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
+    },
+    body: JSON.stringify({ status: newStatus }),
+  })
+    .then((res) => res.json())
+    .then((data) => {
+      Swal.fire({
+        icon: "success",
+        title: `Order status updated to ${newStatus.replace("_", " ").toUpperCase()}!`,
+        showConfirmButton: false,
+        timer: 1200,
+      });
+      fetchAllOrders(); // refresh orders
+    })
+    .catch((error) => {
+      Swal.fire({
+        icon: "error",
+        title: "Failed to update order status",
+        text: error.message,
+      });
+    });
+};
+
+        
+
     // Filter products based on search term
     const filteredProducts = products.filter(product =>
         product.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     // Rendered product rows
+    // Rendered product rows
     const productRows = filteredProducts.map(productData => (
-        <tr key={productData._id}>
-            <td>
-                <Link to={`/products/${productData._id}`} className={styles.productLink}>
-                    {productData.name}
-                </Link>
-            </td>
-            <td>{productData.description}</td>
-            <td>₱{productData.price.toFixed(2)}</td>
-            <td>
-                {productData.isActive ?
-                    <span className="text-success fw-bold">Available</span>
-                    :
-                    <span className="text-danger fw-bold">Archived</span>
-                }
-            </td>
-            <td>
-                <Button
-                    variant="info" // Changed color for update button
-                    size="sm"
-                    className="me-2 mb-1" // Margin-end and margin-bottom for spacing
-                    onClick={() => openEdit(productData._id)}
-                >
-                    <i className="bi bi-pencil-square"></i> Update
-                </Button>
-                {productData.isActive ?
-                    <Button
-                        variant="warning" // Changed color for disable
-                        size="sm"
-                        className="mb-1"
-                        onClick={() => archiveProduct(productData._id)}
-                    >
-                        <i className="bi bi-archive"></i> Archive
-                    </Button>
-                    :
-                    <Button
-                        variant="success"
-                        size="sm"
-                        className="mb-1"
-                        onClick={() => activateProduct(productData._id)}
-                    >
-                        <i className="bi bi-box-arrow-up"></i> Activate
-                    </Button>
-                }
-            </td>
-        </tr>
-    ));
-
-    // Rendered order cards
-    const orderCards = ordersList.length > 0 ? (
-        ordersList.map((order, index) => (
-            <Card key={order._id || index} className="mb-3 shadow-sm"> {/* Added shadow */}
-               <Accordion.Header eventKey={order._id || index} className="bg-primary text-white"> {/* Changed header color */}
-                    <h5 className="mb-0">
-                        Order ID: {order._id} - User: <span className="text-warning">{order.userId}</span>
-                    </h5>
-                </Accordion.Header>
-                <Accordion.Body eventKey={order._id || index}>
-                    <Card.Body>
-                        <h6 className="text-muted">Purchased on {moment(order.orderedOn).format("MMMM DD, YYYY hh:mm A")}:</h6>
-                        {order.productsOrdered.length > 0 ? (
-                            <Table striped bordered hover size="sm" className="mt-3">
-                                <thead className="bg-light">
-                                    <tr>
-                                        <th>Product Name</th>
-                                        <th>Quantity</th>
-                                        <th>Subtotal</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {order.productsOrdered.map((product, pIndex) => (
-                                        <tr key={product._id || pIndex}>
-                                            <td>{product.productName}</td>
-                                            <td>{product.quantity}</td>
-                                            <td>₱{(product.quantity * product.price).toFixed(2)}</td> {/* Calculate subtotal */}
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </Table>
-                        ) : (
-                            <p className="text-muted">No products found for this order.</p>
-                        )}
-                        <h4 className="mt-3 text-end">Total: <span className="text-primary fw-bold">₱{order.totalPrice.toFixed(2)}</span></h4>
-                    </Card.Body>
-                </Accordion.Body>
-            </Card>
-        ))
-    ) : (
-        <p className="text-center text-muted fs-5 mt-5">No orders available yet.</p>
-    );
+    <tr key={productData._id}>
+        <td>
+            {productData.image ? (
+                <img
+                    src={productData.image}
+                    alt={productData.name}
+                    style={{ width: "60px", height: "60px", objectFit: "cover", borderRadius: "8px" }}
+                />
+            ) : (
+                <span className="text-muted">No Image</span>
+            )}
+        </td>
+        <td>
+            <Link to={`/products/${productData._id}`} className={styles.productLink}>
+                {productData.name}
+            </Link>
+        </td>
+        <td>{productData.description}</td>
+        <td>₱{productData.price.toFixed(2)}</td>
+        <td>
+            {productData.isActive ?
+                <span className="text-success fw-bold">Available</span>
+                :
+                <span className="text-danger fw-bold">Archived</span>
+            }
+        </td>
+        <td>
+            {/* ...the rest of your action buttons... */}
+        </td>
+    </tr>
+));
 
     return (
         <Container className="my-5">
@@ -443,72 +449,206 @@ export default function AdminView() {
                     <>
                         <h3 className="mb-4 text-secondary">Product List</h3>
                         {products.length > 0 ? (
-                            <Table striped bordered hover responsive className={styles.adminTable}>
-                                <thead className="bg-primary text-white"> {/* Changed header color */}
-                                    <tr>
-                                        <th>Name</th>
-                                        <th>Description</th>
-                                        <th>Price</th>
-                                        <th>Availability</th>
-                                        <th className="text-center">Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {productRows}
-                                </tbody>
-                            </Table>
+                            <Table
+    striped
+    bordered
+    hover
+    responsive
+    className={`${styles.adminTable} text-center`}
+    style={{ minWidth: "950px", maxWidth: "1200px", margin: "auto" }}
+>
+    <thead className="bg-primary text-white">
+        <tr>
+            <th style={{ width: "120px" }}>Image</th>
+            <th>Name</th>
+            <th style={{ width: "220px" }}>Description</th>
+            <th style={{ width: "100px" }}>Price</th>
+            <th style={{ width: "120px" }}>Availability</th>
+            <th style={{ width: "140px" }}>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {filteredProducts.map(productData => (
+            <tr key={productData._id}>
+                <td>
+                    {productData.image ? (
+                        <img
+                            src={productData.image}
+                            alt={productData.name}
+                            style={{
+                                width: "100px",
+                                height: "100px",
+                                objectFit: "cover",
+                                borderRadius: "10px",
+                                boxShadow: "0 2px 8px rgba(0,0,0,0.08)"
+                            }}
+                        />
+                    ) : (
+                        <div
+                            className="text-muted"
+                            style={{
+                                width: "100px",
+                                height: "100px",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                background: "#f8f9fa",
+                                borderRadius: "10px"
+                            }}
+                        >
+                            No Image
+                        </div>
+                    )}
+                </td>
+                <td>
+                    <Link to={`/products/${productData._id}`} className={styles.productLink}>
+                        {productData.name}
+                    </Link>
+                </td>
+                <td className="align-middle">
+                    <div
+                        style={{
+                            maxWidth: "200px",
+                            whiteSpace: "nowrap",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis"
+                        }}
+                        title={productData.description}
+                    >
+                        {productData.description}
+                    </div>
+                </td>
+                <td>₱{productData.price.toFixed(2)}</td>
+                <td>
+                    {productData.isActive ? (
+                        <span className="text-success fw-bold">Available</span>
+                    ) : (
+                        <span className="text-danger fw-bold">Archived</span>
+                    )}
+                </td>
+                <td>
+                    <div className="d-flex flex-column gap-1 align-items-center">
+                        <Button
+                            variant="info"
+                            size="sm"
+                            style={{ minWidth: "100px" }}
+                            onClick={() => openEdit(productData._id)}
+                        >
+                            <i className="bi bi-pencil-square"></i> Update
+                        </Button>
+                        {productData.isActive ? (
+                            <Button
+                                variant="warning"
+                                size="sm"
+                                style={{ minWidth: "100px" }}
+                                onClick={() => archiveProduct(productData._id)}
+                            >
+                                <i className="bi bi-archive"></i> Archive
+                            </Button>
                         ) : (
-                             <p className="text-center text-muted fs-5 mt-5">No products available yet. Add one!</p>
+                            <Button
+                                variant="success"
+                                size="sm"
+                                style={{ minWidth: "100px" }}
+                                onClick={() => activateProduct(productData._id)}
+                            >
+                                <i className="bi bi-box-arrow-up"></i> Activate
+                            </Button>
+                        )}
+                        {/* If you want to add a Delete button for archived products, add it here */}
+                    </div>
+                </td>
+            </tr>
+        ))}
+    </tbody>
+</Table>
+                        ) : (
+                            <p className="text-center text-muted fs-5 mt-5">No products available yet. Add one!</p>
                         )}
                     </>
                 ) : (
                     <>
-                       <h3 className="mb-4 text-secondary">All Customer Orders</h3>
-                            <Accordion defaultActiveKey="0">
+                        <h3 className="mb-4 text-secondary">All Customer Orders</h3>
+                        
+                        <Accordion defaultActiveKey="0">
                             {ordersList.length > 0 ? (
                                 ordersList.map((order, index) => (
-                                <Accordion.Item eventKey={order._id || index} key={order._id || index} className="mb-3 shadow-sm">
-                                    <Accordion.Header>
-                                    <h5 className="mb-0">
-                                        Order ID: {order._id} - User: <span className="text-warning">{order.userId}</span>
-                                    </h5>
-                                    </Accordion.Header>
-                                    <Accordion.Body>
-                                    <h6 className="text-muted">
-                                        Purchased on {moment(order.orderedOn).format("MMMM DD, YYYY hh:mm A")}:
-                                    </h6>
-                                    {order.productsOrdered.length > 0 ? (
-                                        <Table striped bordered hover size="sm" className="mt-3">
-                                        <thead className="bg-light">
-                                            <tr>
-                                            <th>Product Name</th>
-                                            <th>Quantity</th>
-                                            <th>Subtotal</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {order.productsOrdered.map((product, pIndex) => (
-                                            <tr key={product._id || pIndex}>
-                                                <td>{product.productName}</td>
-                                                <td>{product.quantity}</td>
-                                                <td>₱{(product.quantity * product.price).toFixed(2)}</td>
-                                            </tr>
-                                            ))}
-                                        </tbody>
-                                        </Table>
-                                    ) : (
-                                        <p className="text-muted">No products found for this order.</p>
-                                    )}
-                                    <h4 className="mt-3 text-end">
-                                        Total: <span className="text-primary fw-bold">₱{order.totalPrice.toFixed(2)}</span>
-                                    </h4>
-                                    </Accordion.Body>
-                                </Accordion.Item>
+                                    <Accordion.Item eventKey={order._id || index} key={order._id || index} className="mb-3 shadow-sm">
+                                        <Accordion.Header>
+                                            <h5 className="mb-0">
+                                                Order ID: {order._id} - User: <span className="text-primary">{order.userId}</span>
+                                                {/* Status Badge */}
+                                                <span className="ms-3">
+                                                    {order.status === "pending" && <span className="badge bg-secondary">Pending</span>}
+                                                    {order.status === "on_delivery" && <span className="badge bg-info text-dark">On Delivery</span>}
+                                                    {order.status === "completed" && <span className="badge bg-success">Completed</span>}
+                                                    {order.status === "cancelled" && <span className="badge bg-danger">Cancelled</span>}
+                                                </span>
+                                            </h5>
+                                        </Accordion.Header>
+                                        <Accordion.Body>
+                                            <h6 className="text-muted">
+                                                Purchased on {moment(order.orderedOn).format("MMMM DD, YYYY hh:mm A")}:
+                                            </h6>
+                                            {order.productsOrdered && order.productsOrdered.length > 0 ? (
+                                                <Table striped bordered hover size="sm" className="mt-3">
+                                                    <thead className="bg-light">
+                                                        <tr>
+                                                            <th>Product Name</th>
+                                                            <th>Quantity</th>
+                                                            <th>Subtotal</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        {order.productsOrdered.map((product, pIndex) => (
+                                                            <tr key={product._id || pIndex}>
+                                                                <td>{product.productName}</td>
+                                                                <td>{product.quantity}</td>
+                                                                <td>₱{(product.quantity * product.price).toFixed(2)}</td>
+                                                            </tr>
+                                                        ))}
+                                                    </tbody>
+                                                </Table>
+                                            ) : (
+                                                <p className="text-muted">No products found for this order.</p>
+                                            )}
+                                            <h4 className="mt-3 text-end">
+                                                Total: <span className="text-primary fw-bold">₱{order.totalPrice.toFixed(2)}</span>
+                                            </h4>
+                                            {/* Status Change Buttons */}
+                                            <div className="d-flex gap-2 justify-content-end mt-3">
+                                                <Button
+                                                    size="sm"
+                                                    variant="info"
+                                                    disabled={order.status === "on_delivery"}
+                                                    onClick={() => updateOrderStatus(order._id, "on_delivery")}
+                                                >
+                                                    <i className="bi bi-truck"></i> On Delivery
+                                                </Button>
+                                                <Button
+                                                    size="sm"
+                                                    variant="success"
+                                                    disabled={order.status === "completed"}
+                                                    onClick={() => updateOrderStatus(order._id, "completed")}
+                                                >
+                                                    <i className="bi bi-check-circle"></i> Complete
+                                                </Button>
+                                                <Button
+                                                    size="sm"
+                                                    variant="danger"
+                                                    disabled={order.status === "cancelled"}
+                                                    onClick={() => updateOrderStatus(order._id, "cancelled")}
+                                                >
+                                                    <i className="bi bi-x-circle"></i> Cancelled
+                                                </Button>
+                                            </div>
+                                        </Accordion.Body>
+                                    </Accordion.Item>
                                 ))
                             ) : (
                                 <p className="text-center text-muted fs-5 mt-5">No orders available yet.</p>
                             )}
-                            </Accordion>
+                        </Accordion>
                     </>
                 )}
             </Card>
@@ -521,7 +661,7 @@ export default function AdminView() {
                 </Modal.Header>
                 <Modal.Body>
                     <Form onSubmit={addProduct}>
-                        <Form.Group>
+                        <Form.Group className="mb-3">
                             <Form.Label>Name</Form.Label>
                             <Form.Control
                                 type="text"
@@ -530,7 +670,7 @@ export default function AdminView() {
                                 required
                             />
                         </Form.Group>
-                        <Form.Group>
+                        <Form.Group className="mb-3">
                             <Form.Label>Description</Form.Label>
                             <Form.Control
                                 as="textarea"
@@ -540,16 +680,17 @@ export default function AdminView() {
                                 required
                             />
                         </Form.Group>
-                        <Form.Group>
+                        <Form.Group className="mb-3">
                             <Form.Label>Price</Form.Label>
                             <Form.Control
                                 type="number"
                                 value={price}
                                 onChange={e => setPrice(Number(e.target.value))}
+                                min="0" // Added min attribute for price
                                 required
                             />
                         </Form.Group>
-                        <Form.Group>
+                        <Form.Group className="mb-3">
                             <Form.Label>Image URL</Form.Label>
                             <Form.Control
                                 type="text"
@@ -558,7 +699,7 @@ export default function AdminView() {
                                 placeholder="https://example.com/image.jpg"
                             />
                         </Form.Group>
-                        <Button variant="primary" type="submit" block>
+                        <Button variant="primary" type="submit" className="w-100"> {/* Changed block to w-100 */}
                             Add Product
                         </Button>
                     </Form>

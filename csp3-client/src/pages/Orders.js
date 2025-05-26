@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Card, Accordion } from 'react-bootstrap';
+import { Container, Card, Accordion, Badge } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import moment from 'moment';
 
@@ -18,6 +18,22 @@ export default function Orders() {
 			});
 	}, []);
 
+	// Helper to get badge for status
+	const getStatusBadge = (status) => {
+		switch (status) {
+			case "pending":
+				return <Badge bg="secondary" className="ms-2">Pending</Badge>;
+			case "on_delivery":
+				return <Badge bg="info" text="dark" className="ms-2">On Delivery</Badge>;
+			case "completed":
+				return <Badge bg="success" className="ms-2">Completed</Badge>;
+			case "cancelled":
+				return <Badge bg="danger" className="ms-2">Cancelled</Badge>;
+			default:
+				return null;
+		}
+	};
+
 	return (
 		orders.length === 0 ? (
 			<div className="p-5 my-4 bg-light rounded text-center">
@@ -32,7 +48,8 @@ export default function Orders() {
 					{orders.map((item, index) => (
 						<Accordion.Item eventKey={index.toString()} key={item._id}>
 							<Accordion.Header>
-								Order #{index + 1} - Purchased on: {moment(item.purchasedOn).format("MM-DD-YYYY")} (Click for Details)
+								Order #{index + 1} - Purchased on: {moment(item.purchasedOn || item.orderedOn).format("MM-DD-YYYY")}
+								{getStatusBadge(item.status)}
 							</Accordion.Header>
 							<Accordion.Body>
 								<h6>Items:</h6>

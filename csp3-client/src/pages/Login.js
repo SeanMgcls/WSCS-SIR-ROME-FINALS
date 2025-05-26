@@ -71,19 +71,20 @@ export default function LoginForm(props){
         })
     }
 
-    return(
-        willRedirect === true ?
-            user.isAdmin === true ?
-                <Redirect to='/products'/>
-            :
-                <Redirect to='/'/>
+    return (
+    willRedirect === true ?
+        user.isAdmin === true ?
+            <Redirect to='/products'/>
         :
-            <Row className="justify-content-center">
+            <Redirect to='/'/>
+    :
+        <div className="login-gradient-bg" style={{ minHeight: "100vh" }}>
+            <Row className="justify-content-center align-items-center" style={{ minHeight: "100vh" }}>
                 <Col xs md="6">
                     <h2 className="text-center my-4">Log In</h2>
-                    <Card>
+                    <Card className="shadow rounded-4" style={{ overflow: "hidden" }}>
                         <Form onSubmit={e => authenticate(e)}>
-                            <Card.Body>
+                            <Card.Body className="py-4">
                                 <Form.Group controlId="userEmail">
                                     <Form.Label>Email:</Form.Label>
                                     <Form.Control
@@ -94,8 +95,7 @@ export default function LoginForm(props){
                                         required
                                     />
                                 </Form.Group>
-
-                                <Form.Group controlId="password">
+                                <Form.Group controlId="password" className="mt-3">
                                     <Form.Label>Password:</Form.Label>
                                     <Form.Control
                                         type="password"
@@ -105,11 +105,10 @@ export default function LoginForm(props){
                                         required
                                     />
                                 </Form.Group>
-
                             </Card.Body>
-                            <Card.Footer>
-                                <Button variant="primary" type="submit" block>
-                                    Submit
+                            <Card.Footer className="bg-white border-0 d-flex justify-content-center">
+                                <Button variant="primary" type="submit" block className="rounded-pill">
+                                    Log In
                                 </Button>
                             </Card.Footer>
                         </Form>
@@ -119,6 +118,7 @@ export default function LoginForm(props){
                     </p>
                 </Col>              
             </Row>
-    );
+        </div>
+);
     
 }
