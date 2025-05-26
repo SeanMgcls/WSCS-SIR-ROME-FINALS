@@ -1,19 +1,17 @@
 import React from 'react';
 import Banner from '../components/Banner';
-import Highlights from '../components/Highlights'; // Keep your existing Highlights
+import Highlights from '../components/Highlights';
 import { Container } from 'react-bootstrap';
 
-// Import the new sections you'll create
 import IntroSection from '../components/Homepage files/IntroSection';
 import AboutSection from '../components/Homepage files/AboutSection';
 import ContactSection from '../components/Homepage files/ContactSection';
-import FeaturedProductsSection from '../components/Homepage files/FeaturedProductsSection'; // Will wrap Highlights
+import FeaturedProductsSection from '../components/Homepage files/FeaturedProductsSection';
 
-// Import CSS module for home page sections
 import styles from '../components/css/Home.module.css';
 
 export default function Home() {
-    const bannerData = { // Renamed from pageData to bannerData for clarity
+    const bannerData = {
         title: "Welcome to The UA Shop",
         content: "Discover unique products tailored just for you. Quality, variety, and exceptional service.",
         destination: "/products",
@@ -22,31 +20,29 @@ export default function Home() {
 
     return (
         <React.Fragment>
-            {/* Existing Banner Section */}
-            <Banner data={bannerData} />
+            {/* Wrap Banner in a Container for width constraint */}
+            <Container>
+                <Banner data={bannerData} />
+            </Container>
 
-            {/* New Introduction Section */}
             <section className={styles.introSection}>
                 <Container>
                     <IntroSection />
                 </Container>
             </section>
 
-            {/* New Featured Products Section */}
             <section className={styles.featuredProductsSection}>
                 <Container>
                     <FeaturedProductsSection />
                 </Container>
             </section>
 
-            {/* New About Us Section */}
             <section className={styles.aboutSection}>
                 <Container>
                     <AboutSection />
                 </Container>
             </section>
 
-            {/* New Contact Section */}
             <section className={styles.contactSection}>
                 <Container>
                     <ContactSection />
@@ -55,5 +51,3 @@ export default function Home() {
         </React.Fragment>
     );
 }
-
-

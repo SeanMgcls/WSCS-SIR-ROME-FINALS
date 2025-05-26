@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 
 export default function Product(props) {
   const { breakPoint, data } = props;
-  const { _id, name, description, price, image } = data; // Add imageUrl
+  const { _id, name, description, price, image } = data; 
 
   return (
     <Col xs={12} md={breakPoint} className="mt-4">

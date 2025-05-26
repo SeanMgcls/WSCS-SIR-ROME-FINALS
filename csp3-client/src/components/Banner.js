@@ -6,8 +6,8 @@ export default function Banner({ data }) {
 	const { title, content, destination, label } = data;
 
 	return (
-		<Row>
-			<Col>
+		<Row className="justify-content-center">
+			<Col xs={12} md={8} lg={6}>
 				<Card className="text-center my-4 py-4">
 					<Card.Body>
 						<h1>{title}</h1>

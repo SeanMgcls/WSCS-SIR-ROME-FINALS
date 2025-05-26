@@ -150,3 +150,19 @@
 .navbar-toggler-icon {
     filter: invert(1); /* Makes the toggle icon white */
 }
+
+/* Example: AppNavbar.module.css or your CSS module */
+.shopBrandText {
+  font-family: 'Poppins', 'Montserrat', Arial, sans-serif;
+  font-weight: 700;
+  font-size: 2rem;
+  letter-spacing: 2px;
+  background: linear-gradient(90deg, #2542ff, #e1e7b1, #002aff);
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  text-shadow: 1px 1px 8px rgba(110,0,255,0.10);
+  margin-left: 0.5rem;
+  vertical-align: middle;
+}
